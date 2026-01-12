@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Mail, Lock, User } from 'lucide-react';
 
-import amritaLogo from '/src/assets/image.png'; 
-
+import amritaLogo from '/src/assets/amrita.png'; 
 
 const Login = () => {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationDirection, setAnimationDirection] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('student');
@@ -56,35 +57,80 @@ const Login = () => {
     }
   };
 
-  const flipToForgot = () => {
-    setError('');
-    setSuccessMessage('');
+const flipToForgot = () => {
+  if (isAnimating) return;
+  setError('');
+  setSuccessMessage('');
+  setIsAnimating(true);
+  setAnimationDirection('to-forgot');
+  
+  // First, grow the diagonal to cover full screen
+  setTimeout(() => {
     setIsFlipped(true);
-  };
+  }, 350);  // Halfway through animation
+  
+  setTimeout(() => {
+    setIsAnimating(false);
+    setAnimationDirection('');
+  }, 750);
+};
 
-  const flipToLogin = () => {
-    setError('');
-    setSuccessMessage('');
+const flipToLogin = () => {
+  if (isAnimating) return;
+  setError('');
+  setSuccessMessage('');
+  setIsAnimating(true);
+  setAnimationDirection('to-login');
+  
+  // First, grow the diagonal to cover full screen
+  setTimeout(() => {
     setIsFlipped(false);
-  };
+  }, 350);  // Halfway through animation
+  
+  setTimeout(() => {
+    setIsAnimating(false);
+    setAnimationDirection('');
+  }, 750);
+};
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 overflow-hidden">
       {/* outer layer */}
-      <div className="w-full max-w-6xl h-[600px] perspective-1000">
-        <div 
-          className={`relative w-full h-full transition-transform duration-700 transform-style-3d ${
-            isFlipped ? 'rotate-y-180' : ''
-          }`}
-        >
-          {/* Login */}
-          <div className="absolute inset-0 backface-hidden">
-            <div className="w-full h-full flex rounded-2xl overflow-hidden shadow-2xl">
+      <div className="w-full max-w-6xl h-[600px] relative">
+        <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl">
+          {/* Red Diagonal Overlay - Grows and Shrinks */}
+<div className={`absolute inset-0 z-30 pointer-events-none overflow-hidden ${
+  isAnimating ? 'opacity-100' : 'opacity-0'
+}`}>
+  <div
+    className="absolute w-full h-full bg-amrita transition-all duration-700 ease-in-out"
+    style={{
+      clipPath: animationDirection === 'to-forgot'
+        ? (isFlipped 
+            ? 'polygon(100% 0, 100% 0, 100% 100%, 100% 100%)'  // Shrink to right
+            : 'polygon(0 0, 100% 0, 100% 100%, 0 100%)')  // Cover full
+        : animationDirection === 'to-login'
+        ? (isFlipped 
+            ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'  // Cover full
+            : 'polygon(0 0, 0 0, 0 100%, 0 100%)')  // Shrink to left
+        : (isFlipped 
+            ? 'polygon(100% 0, 100% 0, 100% 100%, 100% 100%)'
+            : 'polygon(0 0, 0 0, 0 100%, 0 100%)'),
+    }}
+  ></div>
+</div>
+
+          {/* Login Form */}
+          <div className={`absolute inset-0 w-full h-full z-10 transition-opacity duration-300 ${
+            isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}>
+            <div className="w-full h-full flex">
               {/* left side - img */}
               <div className="w-1/2 relative overflow-hidden">
-
                 <div 
-                  className="absolute inset-0 bg-cover bg-center"
+                  className={`absolute inset-0 bg-cover bg-center transition-all duration-500 ${
+                    isAnimating ? 'opacity-0 translate-x-10 translate-y-10' : 'opacity-100'
+                  }`}
                   style={{
                     backgroundImage: `url(${amritaLogo})`,
                     backgroundSize: 'cover',
@@ -94,14 +140,19 @@ const Login = () => {
                   <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/10"></div>
                 </div>
                 
-                
-                {/* Diagonal cut effect */}
-                <div className="absolute -right-20 top-0 bottom-0 w-40 bg-background transform skew-x-12"></div>
+                {/* Red Diagonal on left side */}
+                <div className={`absolute -right-20 top-0 bottom-0 w-40 bg-background transform skew-x-12 transition-all duration-700 ${
+                  isAnimating ? 'opacity-0' : 'opacity-100'
+                }`}></div>
               </div>
 
-              {/* right side - login */}
+              {/* right side - login form */}
               <div className="w-1/2 bg-background flex items-center justify-center p-8">
-                <Card className="w-full max-w-sm border-0 shadow-none">
+                <Card
+                  className={`w-full max-w-sm border-0 shadow-none transition-all duration-500 ${
+                    isAnimating ? 'opacity-0 translate-x-10 translate-y-10' : 'opacity-100'
+                  }`}
+                >
                   <CardHeader className="text-center pb-2">
                     <CardTitle className="text-2xl font-bold text-amrita">Welcome Back</CardTitle>
                     <p className="text-muted-foreground">Sign in to your account</p>
@@ -148,25 +199,9 @@ const Login = () => {
                             <SelectValue placeholder="Select your role" />
                           </SelectTrigger>
                           <SelectContent className="border-amrita/20">
-                           
-                            <SelectItem 
-                              value="student" 
-                              className="focus:bg-amrita/10 focus:text-amrita data-[state=checked]:text-amrita"
-                            >
-                              Student
-                            </SelectItem>
-                            <SelectItem 
-                              value="faculty" 
-                              className="focus:bg-amrita/10 focus:text-amrita data-[state=checked]:text-amrita"
-                            >
-                              Faculty
-                            </SelectItem>
-                            <SelectItem 
-                              value="admin" 
-                              className="focus:bg-amrita/10 focus:text-amrita data-[state=checked]:text-amrita"
-                            >
-                              Admin
-                            </SelectItem>
+                            <SelectItem value="student">Student</SelectItem>
+                            <SelectItem value="faculty">Faculty</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -175,14 +210,15 @@ const Login = () => {
                         <p className="text-destructive text-sm text-center">{error}</p>
                       )}
 
-                      <Button type="submit" className="w-full bg-amrita hover:bg-amrita/90 text-white focus:ring-2 focus:ring-amrita focus:ring-offset-2">
+                      <Button type="submit" className="w-full bg-amrita hover:bg-amrita/90 text-white">
                         Login
                       </Button>
 
                       <button
                         type="button"
                         onClick={flipToForgot}
-                        className="w-full text-center text-amrita hover:underline text-sm focus:outline-none focus:ring-2 focus:ring-amrita focus:ring-offset-2 rounded px-2 py-1"
+                        disabled={isAnimating}
+                        className="w-full text-center text-amrita hover:underline text-sm"
                       >
                         Forgot Password?
                       </button>
@@ -193,11 +229,17 @@ const Login = () => {
             </div>
           </div>
          
-          <div className="absolute inset-0 backface-hidden rotate-y-180">
-            <div className="w-full h-full flex rounded-2xl overflow-hidden shadow-2xl">
-         
+          {/* Forgot Password Form */}
+          <div className={`absolute inset-0 w-full h-full z-20 transition-opacity duration-300 ${
+            isFlipped ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}>
+            <div className="w-full h-full flex">
               <div className="w-1/2 bg-background flex items-center justify-center p-8">
-                <Card className="w-full max-w-sm border-0 shadow-none">
+                <Card
+                  className={`w-full max-w-sm border-0 shadow-none transition-all duration-500 ${
+                    isAnimating ? 'opacity-0 -translate-x-10 translate-y-10' : 'opacity-100'
+                  }`}
+                >
                   <CardHeader className="text-center pb-2">
                     <CardTitle className="text-2xl font-bold text-amrita">Reset Password</CardTitle>
                     <p className="text-muted-foreground">Enter your email to reset</p>
@@ -228,14 +270,15 @@ const Login = () => {
                         <p className="text-green-600 text-sm text-center">{successMessage}</p>
                       )}
 
-                      <Button type="submit" className="w-full bg-amrita hover:bg-amrita/90 text-white focus:ring-2 focus:ring-amrita focus:ring-offset-2">
+                      <Button type="submit" className="w-full bg-amrita hover:bg-amrita/90 text-white">
                         Reset Password
                       </Button>
 
                       <button
                         type="button"
                         onClick={flipToLogin}
-                        className="w-full text-center text-amrita hover:underline text-sm focus:outline-none focus:ring-2 focus:ring-amrita focus:ring-offset-2 rounded px-2 py-1"
+                        disabled={isAnimating}
+                        className="w-full text-center text-amrita hover:underline text-sm"
                       >
                         Back to Login
                       </button>
@@ -244,24 +287,25 @@ const Login = () => {
                 </Card>
               </div>
 
-              {/* Right side - amrita img (flipped) */}
+              {/* Right side - image */}
               <div className="w-1/2 relative overflow-hidden">
-               
                 <div 
-                  className="absolute inset-0 bg-cover bg-center"
+                  className={`absolute inset-0 bg-cover bg-center transition-all duration-500 ${
+                    isAnimating ? 'opacity-0 -translate-x-10 translate-y-10' : 'opacity-100'
+                  }`}
                   style={{
                     backgroundImage: `url(${amritaLogo})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                   }}
                 >
-                  
                   <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/10"></div>
                 </div>
                 
-          
-                {/* diagonal cut effect (flipped side) */}
-                <div className="absolute -left-20 top-0 bottom-0 w-40 bg-background transform skew-x-12"></div>
+                {/* Red Diagonal on right side */}
+                <div className={`absolute -left-20 top-0 bottom-0 w-40 bg-background transform skew-x-12 transition-all duration-700 ${
+                  isAnimating ? 'opacity-0' : 'opacity-100'
+                }`}></div>
               </div>
             </div>
           </div>

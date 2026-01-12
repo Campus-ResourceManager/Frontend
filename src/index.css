@@ -287,3 +287,48 @@ form > div > div {
 :focus:not(:focus-visible) {
   outline: none !important;
 }
+
+/* Diagonal mask */
+.diagonal-mask {
+  clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
+  transition: clip-path 0.7s ease-in-out;
+}
+
+.diagonal-mask-out-left {
+  clip-path: polygon(0 0, 100% 0, 0% 100%, 0% 100%);
+}
+
+.diagonal-mask-out-right {
+  clip-path: polygon(100% 0, 100% 0, 100% 100%, 15% 100%);
+}
+
+/* Text disappear like video */
+@keyframes text-diagonal-out-left {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-40px, 40px);
+  }
+}
+
+@keyframes text-diagonal-out-right {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(40px, 40px);
+  }
+}
+
+.text-out-left {
+  animation: text-diagonal-out-left 0.45s ease forwards;
+}
+
+.text-out-right {
+  animation: text-diagonal-out-right 0.45s ease forwards;
+}
