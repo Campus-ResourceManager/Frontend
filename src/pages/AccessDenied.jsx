@@ -9,15 +9,21 @@ const AccessDenied = () => {
   const { user, logout } = useAuth();
 
   const handleGoBack = () => {
-    if (user) {
-      navigate(`/${user.role}-dashboard`);
+    if (user) { // Navigate ->  based on role
+      if (user.role === 'admin') {
+        navigate('/admin-dashboard');
+      } else if (user.role === 'coordinator') {
+        navigate('/coordinator-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } else {
       navigate('/login');
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 
@@ -27,12 +33,10 @@ const AccessDenied = () => {
         <div className="mx-auto w-24 h-24 bg-destructive/10 rounded-full flex items-center justify-center mb-6">
           <ShieldX className="w-12 h-12 text-destructive" />
         </div>
-        
         <h1 className="text-3xl font-bold text-foreground-90 mb-2">Access Denied</h1>
         <p className="text-muted-foreground mb-8">
-          You don't have permission to access this page. Please contact the administrator if you believe this is an error.
+          You don't have permission to access this page. Please contact the administrator.
         </p>
-        
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button onClick={handleGoBack} className="bg-amrita hover:bg-amrita/90 text-white">
             <ArrowLeft className="w-4 h-4 mr-2" />

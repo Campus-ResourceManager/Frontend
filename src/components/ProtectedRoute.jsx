@@ -3,16 +3,40 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, loading, isAuthenticated } = useAuth();
 
-  if (!isAuthenticated) {
+  console.log("State:", { 
+    user: JSON.stringify(user),
+    isAuthenticated, 
+    loading,
+    allowedRoles 
+  });
+
+  if (loading) {
+    console.log("Loading...");
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-amrita border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !user) {
+    console.log("Invalid Credentials");
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user?.role)) {
+  console.log("User authenticated:", user.role);
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    console.log("invalid credentials - Wrong role:", user.role);
     return <Navigate to="/access-denied" replace />;
   }
 
+  console.log("Access granted!");
   return children;
 };
 

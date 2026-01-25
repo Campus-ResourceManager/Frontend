@@ -6,108 +6,110 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Mail, Lock, User } from 'lucide-react';
-import { Alert, AlertDescription } from '../components/ui/alert';
-
-import amritaLogo from '/src/assets/amrita.png'; 
+import { User, Lock } from 'lucide-react';
+import amritaLogo from '/src/assets/amrita.png';
 
 const Login = () => {
-  const [currentView, setCurrentView] = useState('login'); // 'login', 'forgot', 'register'
+  const [currentView, setCurrentView] = useState('login'); 
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationDirection, setAnimationDirection] = useState('');
-  const [email, setEmail] = useState('');
+  
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('admin'); 
+  
+  const [registerUsername, setRegisterUsername] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('student');
-  const [resetEmail, setResetEmail] = useState('');
-  const [registerEmail, setRegisterEmail] = useState('');
+  
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   
-  const { login, resetPassword, register } = useAuth();
+  const { login, register } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    setError('');
+  const handleLogin = async (e) => {
+  e.preventDefault();
+  console.log("Login button clicked");
+  
+  setError('');
+  setIsLoading(true);
+  
+  try {
+    console.log("Calling login() function");
+    const result = await login(username, password, role);
+    console.log("Login result:", result);
     
-    const result = login(email, password, role);
     if (result.success) {
-      navigate(`/${role}-dashboard`);
+      console.log("Login SUCCESS! User:", result.user);
+      console.log("Navigating to:", 
+        result.user.role === 'admin' ? '/admin-dashboard' : '/coordinator-dashboard'
+      );
+      
+      setTimeout(() => {
+        if (result.user.role === 'admin') {
+          navigate('/admin-dashboard', { replace: true });
+        } else {
+          navigate('/coordinator-dashboard', { replace: true });
+        }
+      }, 100);
+      
     } else {
+      console.log("Login FAILED:", result.message);
       setError(result.message);
     }
-  };
+  } catch (err) {
+    console.error("Login ERROR:", err);
+    setError('An error occurred during login');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
-  const handleResetPassword = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
-    setSuccessMessage('');
+    setIsLoading(true);
     
-    if (!resetEmail) {
-      setError('Please enter your email');
-      return;
-    }
-    
-    const result = resetPassword(resetEmail);
-    if (result.success) {
-      setSuccessMessage(result.message);
-      setTimeout(() => {
-        flipToLogin();
-        setSuccessMessage('');
-        setResetEmail('');
-      }, 2000);
-    }
-  };
-
-  const handleRegister = (e) => {
-    e.preventDefault();
-    setError('');
-    
-    if (!registerEmail || !password || !confirmPassword) {
+    if (!registerUsername || !registerPassword || !confirmPassword) {
       setError('Please fill all fields');
+      setIsLoading(false);
       return;
     }
     
-    if (password !== confirmPassword) {
+    if (registerPassword !== confirmPassword) {
       setError('Passwords do not match');
+      setIsLoading(false);
       return;
     }
     
-    if (password.length < 6) {
+    if (registerPassword.length < 6) {
       setError('Password must be at least 6 characters');
+      setIsLoading(false);
       return;
     }
     
-    // Show success popup
-    setShowSuccessPopup(true);
-    
-    // Redirect to login after 2 seconds
-    setTimeout(() => {
-      setShowSuccessPopup(false);
-      setRegisterEmail('');
-      setPassword('');
-      setConfirmPassword('');
-      flipToLogin();
-    }, 2000);
-  };
-
-  const flipToForgot = () => {
-    if (isAnimating) return;
-    setError('');
-    setSuccessMessage('');
-    setIsAnimating(true);
-    setAnimationDirection('to-forgot');
-    
-    setTimeout(() => {
-      setCurrentView('forgot');
-    }, 350);
-    
-    setTimeout(() => {
-      setIsAnimating(false);
-      setAnimationDirection('');
-    }, 750);
+    try {
+      const result = await register(registerUsername, registerPassword, 'coordinator');
+      if (result.success) {
+        setShowSuccessPopup(true);
+        setTimeout(() => {
+          setShowSuccessPopup(false);
+          setRegisterUsername('');
+          setRegisterPassword('');
+          setConfirmPassword('');
+          flipToLogin('right-to-left');
+        }, 2000);
+      } else {
+        setError(result.message);
+      }
+    } catch (err) {
+      setError('Failed to register');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const flipToRegister = () => {
@@ -115,7 +117,7 @@ const Login = () => {
     setError('');
     setSuccessMessage('');
     setIsAnimating(true);
-    setAnimationDirection('to-register');
+    setAnimationDirection('left-to-right');
     
     setTimeout(() => {
       setCurrentView('register');
@@ -127,12 +129,12 @@ const Login = () => {
     }, 750);
   };
 
-  const flipToLogin = () => {
+  const flipToLogin = (direction = 'right-to-left') => {
     if (isAnimating) return;
     setError('');
     setSuccessMessage('');
     setIsAnimating(true);
-    setAnimationDirection('to-login');
+    setAnimationDirection(direction);
     
     setTimeout(() => {
       setCurrentView('login');
@@ -142,6 +144,26 @@ const Login = () => {
       setIsAnimating(false);
       setAnimationDirection('');
     }, 750);
+  };
+
+  const getAnimationStyle = () => {
+    if (!isAnimating) return {};
+    
+    if (animationDirection === 'left-to-right') {
+      return {
+        transform: currentView === 'login' 
+          ? 'translateX(0%)' 
+          : 'translateX(100%)',
+        opacity: currentView === 'login' ? 0 : 1
+      };
+    } else { // right to left
+      return {
+        transform: currentView === 'register' 
+          ? 'translateX(0%)' 
+          : 'translateX(-100%)',
+        opacity: currentView === 'register' ? 0 : 1
+      };
+    }
   };
 
   return (
@@ -157,47 +179,46 @@ const Login = () => {
                 </svg>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Registration Successful!</h3>
-              <p className="text-gray-600">Your account has been created successfully. Redirecting to login...</p>
+              <p className="text-gray-600">Coordinator account has been created successfully. Redirecting to login...</p>
             </div>
           </div>
         </div>
       )}
-
-      {/* outer layer */}
+       {/* outer layer */}
       <div className="w-full max-w-6xl h-[600px] relative">
         <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl">
+          
           {/* Red Diagonal Overlay - Grows and Shrinks */}
           <div className={`absolute inset-0 z-30 pointer-events-none overflow-hidden ${
             isAnimating ? 'opacity-100' : 'opacity-0'
-          }`}>
+          } transition-opacity duration-300`}>
             <div
               className="absolute w-full h-full bg-amrita transition-all duration-700 ease-in-out"
               style={{
-                clipPath: animationDirection === 'to-forgot' || animationDirection === 'to-register'
-                  ? (currentView !== 'login'
-                      ? 'polygon(100% 0, 100% 0, 100% 100%, 100% 100%)'
-                      : 'polygon(0 0, 100% 0, 100% 100%, 0 100%)')
-                  : animationDirection === 'to-login'
-                  ? (currentView === 'login'
+                clipPath: animationDirection === 'left-to-right' 
+                  ? (currentView === 'login' 
+                      ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
+                      : 'polygon(100% 0, 100% 0, 100% 100%, 100% 100%)')
+                  : (currentView === 'register'
                       ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
                       : 'polygon(0 0, 0 0, 0 100%, 0 100%)')
-                  : (currentView !== 'login'
-                      ? 'polygon(100% 0, 100% 0, 100% 100%, 100% 100%)'
-                      : 'polygon(0 0, 0 0, 0 100%, 0 100%)'),
               }}
             ></div>
           </div>
 
           {/* Login Form */}
-          <div className={`absolute inset-0 w-full h-full z-10 transition-opacity duration-300 ${
-            currentView === 'login' ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}>
+          <div 
+            className={`absolute inset-0 w-full h-full z-10 transition-all duration-700 ease-in-out ${
+              currentView === 'login' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+            }`}
+            style={getAnimationStyle()}
+          >
             <div className="w-full h-full flex">
               {/* left side - img */}
               <div className="w-1/2 relative overflow-hidden">
                 <div 
-                  className={`absolute inset-0 bg-cover bg-center transition-all duration-500 ${
-                    isAnimating ? 'opacity-0 translate-x-10 translate-y-10' : 'opacity-100'
+                  className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ${
+                    isAnimating ? (animationDirection === 'left-to-right' ? 'translate-x-10' : '-translate-x-10') : ''
                   }`}
                   style={{
                     backgroundImage: `url(${amritaLogo})`,
@@ -216,8 +237,8 @@ const Login = () => {
               {/* right side - login form */}
               <div className="w-1/2 bg-background flex items-center justify-center p-8">
                 <Card
-                  className={`w-full max-w-sm border-0 shadow-none transition-all duration-500 ${
-                    isAnimating ? 'opacity-0 translate-x-10 translate-y-10' : 'opacity-100'
+                  className={`w-full max-w-sm border-0 shadow-none transition-all duration-700 ${
+                    isAnimating ? (animationDirection === 'left-to-right' ? 'translate-x-10' : '-translate-x-10') : ''
                   }`}
                 >
                   <CardHeader className="text-center pb-2">
@@ -227,15 +248,15 @@ const Login = () => {
                   <CardContent>
                     <form onSubmit={handleLogin} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="text-foreground-90">Email</Label>
+                        <Label htmlFor="username" className="text-foreground-90">Username</Label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                           <Input
-                            id="email"
-                            type="email"
-                            placeholder="Enter your email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            id="username"
+                            type="text"
+                            placeholder="Enter your username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                             className="pl-10 w-full focus:border-amrita focus:ring-amrita"
                             required
                           />
@@ -260,15 +281,16 @@ const Login = () => {
 
                       <div className="space-y-2">
                         <Label htmlFor="role" className="text-foreground-90">Role</Label>
-                        <Select value={role} onValueChange={setRole}>
+                        <Select 
+                          value={role} 
+                          onValueChange={setRole}
+                        >
                           <SelectTrigger className="w-full focus:ring-amrita focus:border-amrita">
-                            <User className="w-4 h-4 mr-2 text-muted-foreground" />
                             <SelectValue placeholder="Select your role" />
                           </SelectTrigger>
                           <SelectContent className="border-amrita/20">
-                            <SelectItem value="student">Student</SelectItem>
-                            <SelectItem value="faculty">Faculty</SelectItem>
                             <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="coordinator">Coordinator</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -277,151 +299,68 @@ const Login = () => {
                         <p className="text-destructive text-sm text-center">{error}</p>
                       )}
 
-                      <Button type="submit" className="w-full bg-amrita hover:bg-amrita/90 text-white">
-                        Login
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-amrita hover:bg-amrita/90 text-white"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Logging in...' : 'Login'}
                       </Button>
 
-                      <div className="relative">
+                      <div className="relative mt-4">
                         <div className="absolute inset-0 flex items-center">
                           <span className="w-full border-t border-gray-300" />
-                          </div>
-                          <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-background px-2 text-muted-foreground">Or</span>
-                            </div>
-                            </div>
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-background px-2 text-muted-foreground">Or</span>
+                        </div>
+                      </div>
 
                       <button
                         type="button"
                         onClick={flipToRegister}
                         disabled={isAnimating}
-                        className="w-full text-center text-amrita hover:underline text-sm"> New? Create an account!
-                        </button>
-
-
-                      <div className="space-y-2 text-center">
-                        <button
-                        type="button"
-                        onClick={flipToForgot}
-                        disabled={isAnimating}
-                        className="w-full text-center text-amrita hover:underline text-sm">Forgot Password?
-                        </button>
-                        
-                        
-                        </div>
-                    </form>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-         
-          {/* Forgot Password Form */}
-          <div className={`absolute inset-0 w-full h-full z-20 transition-opacity duration-300 ${
-            currentView === 'forgot' ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}>
-            <div className="w-full h-full flex">
-              <div className="w-1/2 bg-background flex items-center justify-center p-8">
-                <Card
-                  className={`w-full max-w-sm border-0 shadow-none transition-all duration-500 ${
-                    isAnimating ? 'opacity-0 -translate-x-10 translate-y-10' : 'opacity-100'
-                  }`}
-                >
-                  <CardHeader className="text-center pb-2">
-                    <CardTitle className="text-2xl font-bold text-amrita">Reset Password</CardTitle>
-                    <p className="text-muted-foreground">Enter your email to reset</p>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleResetPassword} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="resetEmail" className="text-foreground-90">Email</Label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                          <Input
-                            id="resetEmail"
-                            type="email"
-                            placeholder="Enter your email"
-                            value={resetEmail}
-                            onChange={(e) => setResetEmail(e.target.value)}
-                            className="pl-10 w-full focus:border-amrita focus:ring-amrita"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      {error && (
-                        <p className="text-destructive text-sm text-center">{error}</p>
-                      )}
-
-                      {successMessage && (
-                        <p className="text-green-600 text-sm text-center">{successMessage}</p>
-                      )}
-
-                      <Button type="submit" className="w-full bg-amrita hover:bg-amrita/90 text-white">
-                        Reset Password
-                      </Button>
-
-                      <button
-                        type="button"
-                        onClick={flipToLogin}
-                        disabled={isAnimating}
-                        className="w-full text-center text-amrita hover:underline text-sm"
+                        className="w-full text-center text-amrita hover:underline text-sm mt-4"
                       >
-                        Back to Login
+                        New? Create Admin Account
                       </button>
                     </form>
                   </CardContent>
                 </Card>
               </div>
-
-              {/* Right side - image */}
-              <div className="w-1/2 relative overflow-hidden">
-                <div 
-                  className={`absolute inset-0 bg-cover bg-center transition-all duration-500 ${
-                    isAnimating ? 'opacity-0 -translate-x-10 translate-y-10' : 'opacity-100'
-                  }`}
-                  style={{
-                    backgroundImage: `url(${amritaLogo})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                  }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/10"></div>
-                </div>
-                
-                <div className={`absolute -left-20 top-0 bottom-0 w-40 bg-background transform skew-x-12 transition-all duration-700 ${
-                  isAnimating ? 'opacity-0' : 'opacity-100'
-                }`}></div>
-              </div>
             </div>
           </div>
 
           {/* Register Form */}
-          <div className={`absolute inset-0 w-full h-full z-20 transition-opacity duration-300 ${
-            currentView === 'register' ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}>
+          <div 
+            className={`absolute inset-0 w-full h-full z-20 transition-all duration-700 ease-in-out ${
+              currentView === 'register' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+            }`}
+            style={getAnimationStyle()}
+          >
             <div className="w-full h-full flex">
               <div className="w-1/2 bg-background flex items-center justify-center p-8">
                 <Card
-                  className={`w-full max-w-sm border-0 shadow-none transition-all duration-500 ${
-                    isAnimating ? 'opacity-0 -translate-x-10 translate-y-10' : 'opacity-100'
+                  className={`w-full max-w-sm border-0 shadow-none transition-all duration-700 ${
+                    isAnimating ? (animationDirection === 'right-to-left' ? 'translate-x-10' : '-translate-x-10') : ''
                   }`}
                 >
                   <CardHeader className="text-center pb-2">
-                    <CardTitle className="text-2xl font-bold text-amrita">Create Account</CardTitle>
-                    <p className="text-muted-foreground">Register for a new account</p>
+                    <CardTitle className="text-2xl font-bold text-amrita">Create Admin Account</CardTitle>
+                    <p className="text-muted-foreground">Create a new admin account</p>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleRegister} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="registerEmail" className="text-foreground-90">Email</Label>
+                        <Label htmlFor="registerUsername" className="text-foreground-90">Username</Label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                           <Input
-                            id="registerEmail"
-                            type="email"
-                            placeholder="Enter your email"
-                            value={registerEmail}
-                            onChange={(e) => setRegisterEmail(e.target.value)}
+                            id="registerUsername"
+                            type="text"
+                            placeholder="Enter username for admin"
+                            value={registerUsername}
+                            onChange={(e) => setRegisterUsername(e.target.value)}
                             className="pl-10 w-full focus:border-amrita focus:ring-amrita"
                             required
                           />
@@ -436,8 +375,8 @@ const Login = () => {
                             id="registerPassword"
                             type="password"
                             placeholder="Create password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            value={registerPassword}
+                            onChange={(e) => setRegisterPassword(e.target.value)}
                             className="pl-10 w-full focus:border-amrita focus:ring-amrita"
                             required
                           />
@@ -464,17 +403,21 @@ const Login = () => {
                         <p className="text-destructive text-sm text-center">{error}</p>
                       )}
 
-                      <Button type="submit" className="w-full bg-amrita hover:bg-amrita/90 text-white">
-                        Register
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-amrita hover:bg-amrita/90 text-white"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Creating...' : 'Create Admin Account'}
                       </Button>
 
                       <button
                         type="button"
-                        onClick={flipToLogin}
+                        onClick={() => flipToLogin('right-to-left')}
                         disabled={isAnimating}
-                        className="w-full text-center text-amrita hover:underline text-sm"
+                        className="w-full text-center text-amrita hover:underline text-sm mt-4"
                       >
-                        Login
+                        Back to Login
                       </button>
                     </form>
                   </CardContent>
@@ -484,8 +427,8 @@ const Login = () => {
               {/* Right side - image */}
               <div className="w-1/2 relative overflow-hidden">
                 <div 
-                  className={`absolute inset-0 bg-cover bg-center transition-all duration-500 ${
-                    isAnimating ? 'opacity-0 -translate-x-10 translate-y-10' : 'opacity-100'
+                  className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ${
+                    isAnimating ? (animationDirection === 'right-to-left' ? '-translate-x-10' : 'translate-x-10') : ''
                   }`}
                   style={{
                     backgroundImage: `url(${amritaLogo})`,
@@ -502,6 +445,7 @@ const Login = () => {
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>

@@ -22,7 +22,7 @@ const Header = () => {
         
         <div className="flex items-center gap-6">
           <span className="text-lg">
-            Welcome, <span className="font-semibold">{user?.name || 'User'}!</span>
+            Welcome, <span className="font-semibold">{user?.username || 'User'}!</span>
           </span>
           <Button 
             onClick={handleLogout}
