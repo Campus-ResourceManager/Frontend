@@ -40,6 +40,7 @@ const Login = () => {
   try {
     console.log("Calling login() function");
     const result = await login(username, password, role);
+
     console.log("Login result:", result);
     
     if (result.success) {
@@ -92,7 +93,7 @@ const Login = () => {
     }
     
     try {
-      const result = await register(registerUsername, registerPassword, 'coordinator');
+      const result = await register(registerUsername, registerPassword, 'admin');
       if (result.success) {
         setShowSuccessPopup(true);
         setTimeout(() => {
