@@ -5,6 +5,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import CoordinatorDashboard from './pages/CoordinatorDashboard';
+import NewBooking from './pages/NewBooking';
+import MyBookings from './pages/MyBookings';
+import HallAvailability from './pages/HallAvailability';
 import AccessDenied from './pages/AccessDenied';
 import NotFound from './pages/NotFound';
 
@@ -27,6 +30,30 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['coordinator']}>
                 <CoordinatorDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/new-booking" 
+            element={
+              <ProtectedRoute allowedRoles={['coordinator']}>
+                <NewBooking />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/my-bookings" 
+            element={
+              <ProtectedRoute allowedRoles={['coordinator']}>
+                <MyBookings />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/hall-availability" 
+            element={
+              <ProtectedRoute allowedRoles={['coordinator']}>
+                <HallAvailability />
               </ProtectedRoute>
             } 
           />

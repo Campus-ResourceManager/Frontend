@@ -105,14 +105,17 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
   body {
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  * {
+    @apply border-border;
+  }
+}
+
 
 /* 3D flip animation */
 @layer utilities {
