@@ -3,7 +3,7 @@
 
   const AuthContext = createContext(null);
 
-  axios.defaults.baseURL = 'http://localhost:5000/api';
+  axios.defaults.baseURL = 'http://localhost:8000/api';
   axios.defaults.withCredentials = true;
 
   export const AuthProvider = ({ children }) => {
@@ -82,8 +82,8 @@
       try {
         const endpoint =
           role === "admin"
-            ? "/auth/admin/request"   // ✅ public admin request
-            : "/auth/register";       // ✅ admin-only (coordinator)
+            ? "/auth/admin/request"   // public admin request
+            : "/auth/register";       // admin-only (coordinator)
 
         const response = await axios.post(endpoint, {
           username,
@@ -104,22 +104,22 @@
     };
 
 
-    return (
-      <AuthContext.Provider
-        value={{
-          user,
-          loading,
-          isAuthenticated, 
-          login,
-          logout,
-          register,
-          checkAuth
-        }}
-      >
-        {children}
-      </AuthContext.Provider>
-    );
-  };
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        isAuthenticated, 
+        login,
+        logout,
+        register,
+        checkAuth
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
   export const useAuth = () => {
     const context = useContext(AuthContext);

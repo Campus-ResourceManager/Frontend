@@ -69,10 +69,10 @@ const MyBookings = () => {
           <Button
             variant="ghost"
             onClick={() => navigate("/coordinator-dashboard")}
-            className="mb-4"
+            className="mb-4 bg-amrita flex items-center gap-1 hover:bg-amrita/95"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
+            Back
           </Button>
           <h2 className="text-3xl font-bold text-foreground-90 mb-2">
             My Booking Requests
@@ -94,8 +94,8 @@ const MyBookings = () => {
                 No booking requests yet.
               </p>
               <Button
-                onClick={() => navigate("/coordinator-dashboard")}
-                className="mt-4"
+                onClick={() => navigate("/new-booking")}
+                className="mt-4 bg-amrita"
               >
                 Create New Booking Request
               </Button>

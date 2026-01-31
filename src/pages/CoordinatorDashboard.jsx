@@ -14,27 +14,25 @@ import { BookOpen, Calendar, PlusCircle, Clock } from "lucide-react";
 const CoordinatorDashboard = () => {
   const navigate = useNavigate();
 
-  const quickLinks = [
-    {
-      icon: PlusCircle,
-      title: "New Hall Booking Request",
-      description: "Create a new booking request for halls",
-      path: "/new-booking",
-      color: "bg-amrita hover:bg-amrita/90",
-      textColor: "text-white"
-    },
-    {
-      icon: BookOpen,
-      title: "Class / Hall Availability",
-      description: "Check and request halls for events",
-      path: "/hall-availability"
-    },
-    {
-      icon: Calendar,
-      title: "My Booking Requests",
-      description: "Track approval and allocation status",
-      path: "/my-bookings"
-    }
+ const quickLinks = [
+  {
+    icon: BookOpen,
+    title: "Class / Hall Availability",
+    description: "Check and request halls for events",
+    path: "/hall-availability"
+  },
+  {
+    icon: PlusCircle,
+    title: "New Hall Booking Request",
+    description: "Create a new booking request for halls",
+    path: "/new-booking"
+  },
+  {
+    icon: Calendar,
+    title: "My Booking Requests",
+    description: "Track approval and allocation status",
+    path: "/my-bookings"
+  }
   ];
 
   return (
@@ -56,14 +54,13 @@ const CoordinatorDashboard = () => {
             <Card
               key={index}
               onClick={() => navigate(link.path)}
-              className={`hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-amrita ${
-                index === 0 ? "md:col-span-3" : ""
-              } ${link.color || ""}`}
+              className={`hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-amrita ${link.color || ""}`}
             >
               <CardHeader className={`flex flex-row items-center gap-4 ${link.textColor || ""}`}>
                 <div className={`p-3 rounded-lg ${link.color ? "bg-white/20" : "bg-amrita/10"}`}>
                   <link.icon className={`w-6 h-6 ${link.textColor ? "text-white" : "text-amrita"}`} />
                 </div>
+                
                 <div className="flex-1">
                   <CardTitle className={`text-lg ${link.textColor || ""}`}>
                     {link.title}
@@ -72,14 +69,6 @@ const CoordinatorDashboard = () => {
                     {link.description}
                   </CardDescription>
                 </div>
-                {index === 0 && (
-                  <Button
-                    className={`${link.color || ""} ${link.textColor || ""} border-white/20`}
-                    variant={link.color ? "outline" : "default"}
-                  >
-                    Create Booking
-                  </Button>
-                )}
               </CardHeader>
             </Card>
           ))}

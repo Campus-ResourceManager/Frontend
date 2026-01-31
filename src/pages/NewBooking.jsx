@@ -242,10 +242,10 @@ const NewBooking = () => {
             <Button
               variant="ghost"
               onClick={() => navigate("/coordinator-dashboard")}
-              className="mb-4"
+              className="mb-4 bg-amrita flex items-center gap-1 hover:bg-amrita/95"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
+              Back
             </Button>
             <h2 className="text-3xl font-bold text-foreground-90 mb-2">
               New Hall Booking Request
@@ -264,7 +264,7 @@ const NewBooking = () => {
                 Booking Request Form
               </CardTitle>
               <CardDescription>
-                Enter faculty and event information. Availability will be
+                Availability will be
                 checked automatically.
               </CardDescription>
             </CardHeader>
@@ -295,7 +295,7 @@ const NewBooking = () => {
                     Faculty Information
                   </h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-center">
                     <div className="space-y-2">
                       <label className="block text-sm font-medium text-foreground-90">
                         <span className="flex items-center gap-1">
@@ -541,7 +541,7 @@ const NewBooking = () => {
                         name="startTime"
                         value={form.startTime}
                         onChange={handleChange}
-                        className={errors.startTime ? "border-red-500" : ""}
+                        className={`${errors.startTime ? "border-red-500" : ""} text-gray-900 dark:text-gray-100`}
                         required
                       />
                       {errors.startTime && (
@@ -563,7 +563,7 @@ const NewBooking = () => {
                         name="endTime"
                         value={form.endTime}
                         onChange={handleChange}
-                        className={errors.endTime ? "border-red-500" : ""}
+                        className={`${errors.endTime ? "border-red-500" : ""} text-gray-900 dark:text-gray-100`}
                         required
                       />
                       {errors.endTime && (
@@ -576,7 +576,7 @@ const NewBooking = () => {
                   </div>
 
                   {form.date && form.startTime && form.endTime && (
-                    <div className="p-3 bg-muted/50 rounded-lg border">
+                    <div className="p-3 bg-muted/50 rounded-lg border text-center">
                       <p className="text-sm text-muted-foreground">
                         <span className="font-medium">Selected Slot:</span>{" "}
                         {new Date(form.date).toLocaleDateString("en-US", {
@@ -590,14 +590,14 @@ const NewBooking = () => {
                     </div>
                   )}
                 </div>
-
+<br></br>
                 {/* Submit Button */}
                 <div className="flex gap-4 pt-4 border-t">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => navigate("/coordinator-dashboard")}
-                    className="flex-1"
+                    className="flex-1 bg-amrita hover:bg-amrita/95"
                     disabled={submitting}
                   >
                     Cancel
@@ -605,7 +605,7 @@ const NewBooking = () => {
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="flex-1 bg-amrita hover:bg-amrita/90"
+                    className="flex-1 bg-amrita hover:bg-amrita/95"
                   >
                     {submitting ? (
                       <>
@@ -614,8 +614,7 @@ const NewBooking = () => {
                       </>
                     ) : (
                       <>
-                        <CheckCircle2 className="w-4 h-4 mr-2" />
-                        Submit Booking Request
+                        Submit
                       </>
                     )}
                   </Button>

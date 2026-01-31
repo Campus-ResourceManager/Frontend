@@ -132,10 +132,10 @@ const HallAvailability = () => {
           <Button
             variant="ghost"
             onClick={() => navigate("/coordinator-dashboard")}
-            className="mb-4"
+            className="mb-4 bg-amrita flex items-center gap-1 hover:bg-amrita/95"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
+            Back
           </Button>
           <h2 className="text-3xl font-bold text-foreground-90 mb-2">
             Hall / Class Availability
@@ -145,6 +145,94 @@ const HallAvailability = () => {
           </p>
         </div>
 
+ {/* Quick Availability Check */}
+            <Card className="bg-gradient-to-br from-amrita/5 to-amrita/10">
+              <CardHeader>
+                <CardTitle className="text-amrita">
+                  Quick Availability Check
+                </CardTitle>
+                <CardDescription>
+                  Check if a specific hall is available for your desired time
+                  slot
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Hall
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="e.g., A-205"
+                      id="check-hall"
+                      className="mb-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Date
+                    </label>
+                    <Input
+                      type="date"
+                      id="check-date"
+                      defaultValue={selectedDate}
+                      className="mb-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Start Time
+                    </label>
+                    <Input type="time" id="check-start" className="mb-2 text-gray-900 dark:text-gray-100 bg-background" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      End Time
+                    </label>
+                    <Input type="time" id="check-end" className="mb-2 text-gray-900 dark:text-gray-100 bg-background" />
+                  </div>
+                </div>
+                <Button
+                  className="mt-4 bg-amrita hover:bg-amrita/95"
+                  onClick={() => {
+                    const hall = document.getElementById("check-hall").value;
+                    const date = document.getElementById("check-date").value;
+                    const startTime = document.getElementById("check-start").value;
+                    const endTime = document.getElementById("check-end").value;
+
+                    if (!hall || !date || !startTime || !endTime) {
+                      alert("Please fill all fields");
+                      return;
+                    }
+
+                    const available = isHallAvailable(
+                      hall,
+                      date,
+                      startTime,
+                      endTime
+                    );
+
+                    if (available === "past") {
+                      alert(
+                        `The requested time slot (${date} from ${startTime} to ${endTime}) has already passed. Please select a future time slot.`
+                      );
+                    } else if (available) {
+                      alert(
+                        `${hall} is available for ${date} from ${startTime} to ${endTime}`
+                      );
+                    } else {
+                      alert(
+                        `${hall} is NOT available for ${date} from ${startTime} to ${endTime}. Please select a different time slot.`
+                      );
+                    }
+                  }}
+                >
+                  Check Availability
+                </Button>
+              </CardContent>
+            </Card>
+            <br></br>
         {/* Date Selector */}
         <Card className="mb-6">
           <CardHeader>
@@ -261,93 +349,7 @@ const HallAvailability = () => {
               })
             )}
 
-            {/* Quick Availability Check */}
-            <Card className="bg-gradient-to-br from-amrita/5 to-amrita/10">
-              <CardHeader>
-                <CardTitle className="text-amrita">
-                  Quick Availability Check
-                </CardTitle>
-                <CardDescription>
-                  Check if a specific hall is available for your desired time
-                  slot
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Hall
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="e.g., A-205"
-                      id="check-hall"
-                      className="mb-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Date
-                    </label>
-                    <Input
-                      type="date"
-                      id="check-date"
-                      defaultValue={selectedDate}
-                      className="mb-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Start Time
-                    </label>
-                    <Input type="time" id="check-start" className="mb-2" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      End Time
-                    </label>
-                    <Input type="time" id="check-end" className="mb-2" />
-                  </div>
-                </div>
-                <Button
-                  className="mt-4"
-                  onClick={() => {
-                    const hall = document.getElementById("check-hall").value;
-                    const date = document.getElementById("check-date").value;
-                    const startTime = document.getElementById("check-start").value;
-                    const endTime = document.getElementById("check-end").value;
-
-                    if (!hall || !date || !startTime || !endTime) {
-                      alert("Please fill all fields");
-                      return;
-                    }
-
-                    const available = isHallAvailable(
-                      hall,
-                      date,
-                      startTime,
-                      endTime
-                    );
-
-                    if (available === "past") {
-                      alert(
-                        `⏰ The requested time slot (${date} from ${startTime} to ${endTime}) has already passed. Please select a future time slot.`
-                      );
-                    } else if (available) {
-                      alert(
-                        `✅ ${hall} is available for ${date} from ${startTime} to ${endTime}`
-                      );
-                    } else {
-                      alert(
-                        `❌ ${hall} is NOT available for ${date} from ${startTime} to ${endTime}. Please select a different time slot.`
-                      );
-                    }
-                  }}
-                >
-                  Check Availability
-                </Button>
-              </CardContent>
-            </Card>
+           
           </div>
         )}
       </main>

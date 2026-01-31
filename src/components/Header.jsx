@@ -27,7 +27,7 @@ const Header = () => {
           <Button 
             onClick={handleLogout}
             variant="outline"
-            className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white"
+            className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white flex items-center gap-1"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Logout
