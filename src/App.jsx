@@ -10,6 +10,7 @@ import MyBookings from './pages/MyBookings';
 import HallAvailability from './pages/HallAvailability';
 import AccessDenied from './pages/AccessDenied';
 import NotFound from './pages/NotFound';
+import UserManagement from './pages/UserManagement';
 
 function App() {
   return (
@@ -22,6 +23,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/user-management" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>  {/* Add this wrapper */}
+                <UserManagement />
               </ProtectedRoute>
             } 
           />
