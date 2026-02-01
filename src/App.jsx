@@ -11,6 +11,7 @@ import HallAvailability from './pages/HallAvailability';
 import AccessDenied from './pages/AccessDenied';
 import NotFound from './pages/NotFound';
 import UserManagement from './pages/UserManagement';
+import HallBookingApprovals from './pages/HallBookingApprovals'; 
 
 function App() {
   return (
@@ -29,8 +30,16 @@ function App() {
           <Route 
             path="/admin/user-management" 
             element={
-              <ProtectedRoute allowedRoles={['admin']}>  {/* Add this wrapper */}
+              <ProtectedRoute allowedRoles={['admin']}>  
                 <UserManagement />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/booking-approvals" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <HallBookingApprovals /> 
               </ProtectedRoute>
             } 
           />
