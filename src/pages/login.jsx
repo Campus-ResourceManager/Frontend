@@ -27,7 +27,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   
-  const { login, register } = useAuth();
+  const { login, register, user } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -44,23 +44,20 @@ const Login = () => {
     console.log("Login result:", result);
     
     if (result.success) {
-      console.log("Login SUCCESS! User:", result.user);
-      console.log("Navigating to:", 
-        result.user.role === 'admin' ? '/admin-dashboard' : '/coordinator-dashboard'
-      );
-      
-      setTimeout(() => {
-        if (result.user.role === 'admin') {
-          navigate('/admin-dashboard', { replace: true });
-        } else {
-          navigate('/coordinator-dashboard', { replace: true });
-        }
-      }, 100);
-      
-    } else {
-      console.log("Login FAILED:", result.message);
-      setError(result.message);
+  // user is set by AuthContext (via /auth/me)
+  console.log("Login SUCCESS! Context User:", user);
+
+  setTimeout(() => {
+    if (user?.role === 'admin') {
+      navigate('/admin-dashboard', { replace: true });
+    } else if (user?.role === 'coordinator') {
+      navigate('/coordinator-dashboard', { replace: true });
     }
+    }, 100);
+  } else {
+    setError(result.message);
+  }
+ 
   } catch (err) {
     console.error("Login ERROR:", err);
     setError('An error occurred during login');

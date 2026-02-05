@@ -1,115 +1,109 @@
-  import React, { createContext, useContext, useState, useEffect } from 'react';
-  import axios from 'axios';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
-  const AuthContext = createContext(null);
+const AuthContext = createContext(null);
 
-  axios.defaults.baseURL = 'http://localhost:8000/api';
-  axios.defaults.withCredentials = true;
+axios.defaults.baseURL = 'http://localhost:8000/api';
+axios.defaults.withCredentials = true;
 
-  export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [isAuthenticated, setIsAuthenticated] = useState(false); 
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    useEffect(() => {
-      checkAuth();
-    }, []);
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
-    const checkAuth = async () => {
-      try {
-        const response = await axios.get('/auth/me');
-        console.log("checkAuth response:", response.data);
-
-        if (response.data && response.data.role) {
-          setUser(response.data);
-          setIsAuthenticated(true); 
-        } else {
-          setUser(null);
-          setIsAuthenticated(false); 
-        }
-      } catch (error) {
-        console.error("checkAuth error:", error);
-        setUser(null);
-        setIsAuthenticated(false); 
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const login = async (username, password, role) => {
+  const checkAuth = async () => {
     try {
-      console.log("Login attempt:", { username, role });
-      console.log("LOGIN API PAYLOAD:", { username, password, role });
+      const response = await axios.get('/auth/me');
+      console.log("checkAuth response:", response.data);
 
-    const response = await axios.post('/auth/login', {
-      username,
-      password,
-      role
-    });
-
-      console.log("Login response:", response.data);
-
-      if (response.data.success) {
-          setUser(response.data.user);
-          setIsAuthenticated(true);
-          return { success: true, user: response.data.user };
+      if (response.data.success && response.data.user) {
+        setUser(response.data.user);
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
       }
-
-
-      return { 
-        success: false, 
-        message: response.data.message 
-      };
     } catch (error) {
-      console.error("Login error:", error);
-      const message = error.response?.data?.message || 'Login failed';
-      return { success: false, message };
+      console.error("checkAuth error:", error);
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
     }
   };
 
-    const logout = async () => {
-      try {
-        await axios.post('/auth/logout');
-      } catch (error) {
-        console.error('Logout error:', error);
-      } finally {
-        setUser(null);
-        setIsAuthenticated(false); 
+  const login = async (username, password, role) => {
+    try {
+      const response = await axios.post('/auth/login', {
+        username,
+        password,
+        role
+      });
+
+      if (response.data.success) {
+        // IMPORTANT: fetch full session user
+        await checkAuth();
+        return { success: true };
       }
-    };
 
-    const register = async (username, password, role) => {
-      try {
-        const endpoint =
-          role === "admin"
-            ? "/auth/admin/request"   // public admin request
-            : "/auth/register";       // admin-only (coordinator)
+      return {
+        success: false,
+        message: response.data.message
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Login failed'
+      };
+    }
+  };
 
-        const response = await axios.post(endpoint, {
-          username,
-          password,
-          role
-        });
+  const logout = async () => {
+    try {
+      await axios.post('/auth/logout');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  };
 
-        return {
-          success: true,
-          message: response.data.message
-        };
-      } catch (error) {
-        return {
-          success: false,
-          message: error.response?.data?.message || "Registration failed"
-        };
-      }
-    };
+  const register = async (username, password, role) => {
+    try {
+      const endpoint =
+        role === "admin"
+          ? "/auth/admin/request"
+          : "/auth/register";
 
+      const response = await axios.post(endpoint, {
+        username,
+        password,
+        role
+      });
+
+      return {
+        success: true,
+        message: response.data.message
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || "Registration failed"
+      };
+    }
+  };
 
   return (
     <AuthContext.Provider
       value={{
         user,
         loading,
-        isAuthenticated, 
+        isAuthenticated,
         login,
         logout,
         register,
@@ -121,10 +115,10 @@
   );
 };
 
-  export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-      throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
-  };
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
