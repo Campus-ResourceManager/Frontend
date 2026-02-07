@@ -101,10 +101,10 @@ const Login = () => {
           flipToLogin('right-to-left');
         }, 2000);
       } else {
-        setError(result.message || 'Registration failed');
+        setError(result.message);
       }
     } catch (err) {
-      setError(err?.message || 'Failed to register. Check console for details.');
+      setError('Failed to register');
     } finally {
       setIsLoading(false);
     }
@@ -177,7 +177,7 @@ const Login = () => {
                 </svg>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Registration Successful!</h3>
-              <p className="text-gray-600">Admin request submitted. An existing admin must approve your account. Redirecting to login...</p>
+              <p className="text-gray-600">Coordinator account has been created successfully. Redirecting to login...</p>
             </div>
           </div>
         </div>

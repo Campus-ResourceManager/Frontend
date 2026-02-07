@@ -26,30 +26,24 @@ const HallAvailability = () => {
     setSelectedDate(today);
   }, []);
 
-  const fetchHalls = async () => {
-    try {
-      const res = await axios.get("/halls");
-      setHalls(res.data || []);
-    } catch (error) {
-      console.error("Failed to load halls", error);
-    }
-  };
-
   const fetchAllBookings = async () => {
     try {
       setLoading(true);
+      // Fetch all bookings (approved and pending) to show availability
       const res = await axios.get("/bookings/availability");
       setAllBookings(res.data || []);
+      
+      // Extract unique halls
+      const uniqueHalls = [
+        ...new Set(res.data.map((booking) => booking.hall).filter(Boolean))
+      ].sort();
+      setHalls(uniqueHalls);
     } catch (error) {
       console.error("Failed to load bookings", error);
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchHalls();
-  }, []);
 
   useEffect(() => {
     fetchAllBookings();
@@ -124,10 +118,9 @@ const HallAvailability = () => {
 
   const bookingsForDate = getBookingsForDate(selectedDate);
 
-  // Group bookings by hall code (halls from DB have .code)
-  const hallCodes = halls.map((h) => (typeof h === "object" && h.code ? h.code : h));
-  const bookingsByHall = hallCodes.reduce((acc, code) => {
-    acc[code] = bookingsForDate.filter((b) => b.hall === code);
+  // Group bookings by hall
+  const bookingsByHall = halls.reduce((acc, hall) => {
+    acc[hall] = bookingsForDate.filter((b) => b.hall === hall);
     return acc;
   }, {});
 
@@ -267,29 +260,27 @@ const HallAvailability = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {hallCodes.length === 0 ? (
+            {halls.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
                   <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground text-lg">
-                    No halls found in the system. Run the hall seed script on the backend.
+                    No halls found in the system.
                   </p>
                 </CardContent>
               </Card>
             ) : (
-              hallCodes.map((code) => {
-                const hallBookings = bookingsByHall[code] || [];
+              halls.map((hall) => {
+                const hallBookings = bookingsByHall[hall] || [];
                 const isAvailable = hallBookings.length === 0;
-                const hallRecord = halls.find((h) => h && h.code === code);
-                const capacity = hallRecord && hallRecord.capacity != null ? hallRecord.capacity : null;
 
                 return (
-                  <Card key={code} className={isAvailable ? "border-green-300" : ""}>
+                  <Card key={hall} className={isAvailable ? "border-green-300" : ""}>
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <MapPin className="w-5 h-5 text-amrita" />
-                          <CardTitle className="text-xl">{code}{capacity != null ? ` (Capacity: ${capacity})` : ""}</CardTitle>
+                          <CardTitle className="text-xl">{hall}</CardTitle>
                         </div>
                         {isAvailable ? (
                           <div className="flex items-center gap-2 text-green-700">
