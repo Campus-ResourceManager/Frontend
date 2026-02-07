@@ -15,6 +15,13 @@ const AdminDashboard = () => {
   const [showRejectModal, setShowRejectModal] = useState(null);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    totalAdmin: 0,
+    totalDepartments: 0,
+    totalHalls: 0
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
   const { user } = useAuth();
 
   const navigate = useNavigate();
@@ -47,11 +54,11 @@ const AdminDashboard = () => {
     },
   ];
 
-  const stats = [
-    { label: 'Total Students', value: '32' },
-    { label: 'Total Faculty', value: '100' },
-    { label: 'Departments', value: '12' },
-    { label: 'Classes/Halls', value: '200' }
+  const statCards = [
+    { key: 'totalStudents', label: 'Total Students' },
+    { key: 'totalAdmin', label: 'Total Admin' },
+    { key: 'totalDepartments', label: 'Departments' },
+    { key: 'totalHalls', label: 'Classes/Halls' }
   ];
 
   // ---------------- API CALLS ----------------
@@ -65,9 +72,25 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      setStatsLoading(true);
+      const res = await axios.get('/admin/stats');
+      setStats(res.data || { totalStudents: 0, totalAdmin: 0, totalDepartments: 0, totalHalls: 0 });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
   // ---------------- EFFECT ----------------
   useEffect(() => {
     fetchPendingBookings();
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
   }, []);
 
   return (
@@ -81,13 +104,15 @@ const AdminDashboard = () => {
           <p className="text-muted-foreground">Welcome to the administration portal</p>
         </div>
 
-        {/* STATS */}
+        {/* STATS - Real-time counts */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <Card key={index} className="bg-amrita text-white">
+          {statCards.map((stat, index) => (
+            <Card key={index} className="bg-red-600 text-white border-red-700 shadow-lg">
               <CardHeader className="pb-2">
                 <CardDescription className="text-white/80">{stat.label}</CardDescription>
-                <CardTitle className="text-3xl">{stat.value}</CardTitle>
+                <CardTitle className="text-3xl">
+                  {statsLoading ? '…' : (stats[stat.key] ?? 0)}
+                </CardTitle>
               </CardHeader>
             </Card>
           ))}
