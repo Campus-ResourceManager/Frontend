@@ -136,9 +136,10 @@ Frontend/
 
 ## 👤 Author
 
--Aravind R K
--Kanishka D
--Sandheep G S
--Radha Krishna
--Sujith
+- Aravind R K
+- Kanishka D
+- Sandheep G S
+- Radha Krishna
+- Sujith
+
 
