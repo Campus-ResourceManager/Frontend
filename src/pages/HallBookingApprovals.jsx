@@ -30,6 +30,9 @@ const HallBookingApprovals = () => {
     try {
       const res = await axios.get('/bookings/pending');
       setPendingBookings(res.data || []);
+      console.log('BOOKING DATA RECEIVED:', res.data[0]); // Check first booking
+      console.log('Has facultyDesignation?', 'facultyDesignation' in res.data[0]);
+      console.log('Has facultyDepartment?', 'facultyDepartment' in res.data[0]);
     } catch (error) {
       console.error('Error fetching pending bookings:', error);
       setMessage('Failed to fetch pending bookings');
@@ -232,26 +235,29 @@ const HallBookingApprovals = () => {
                         </div>
                       </div>
                     </div>
-
                     {/* Faculty Details */}
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm font-medium">
                         <User className="w-4 h-4" />
                         Faculty Information
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm">{booking.facultyName}</p>
-                        {booking.facultyDepartment && (
-                          <p className="text-sm text-muted-foreground">{booking.facultyDepartment}</p>
-                        )}
-                        {booking.facultyEmail && (
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Mail className="w-4 h-4" />
-                            {booking.facultyEmail}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                        </div>
+                        <div className="space-y-1">
+                          {booking.facultyName && (<p className="text-sm font-medium">{booking.facultyName}</p>)}
+                          
+                          {booking.facultyDesignation && (<p className="text-sm text-muted-foreground">Designation: {booking.facultyDesignation}</p>)}
+                          
+                          {booking.facultyDepartment && (
+                            <p className="text-sm text-muted-foreground">Department: {booking.facultyDepartment}</p>
+                            )}
+                            
+                          {booking.facultyEmail && (
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                               <Mail className="w-4 h-4" />
+                               {booking.facultyEmail}
+                               </div>
+                              )}
+                              </div>
+                            </div>
 
                     {/* Coordinator & Description */}
                     <div className="space-y-2">
@@ -265,15 +271,16 @@ const HallBookingApprovals = () => {
                             Requested by: <span className="font-medium">{booking.coordinator.username}</span>
                           </p>
                         )}
+
                         {booking.eventDescription && (
                           <div className="mt-2">
                             <div className="flex items-center gap-1 text-sm font-medium mb-1">
                               <FileText className="w-4 h-4" />
                               Description
-                            </div>
-                            <p className="text-sm text-muted-foreground">{booking.eventDescription}</p>
-                          </div>
-                        )}
+                              </div>
+                              <p className="text-sm text-muted-foreground break-words">{booking.eventDescription}</p>
+                              </div>
+                            )}
                       </div>
                     </div>
                   </div>

@@ -36,6 +36,7 @@ const NewBooking = () => {
   const [form, setForm] = useState({
     facultyName: "",
     facultyDepartment: "",
+    facultyDesignation: "", 
     facultyEmail: "",
     eventTitle: "",
     eventDescription: "",
@@ -48,6 +49,9 @@ const NewBooking = () => {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
+
+const startTimeRef = useRef(null);
+const endTimeRef = useRef(null);
 
   // Common departments
   const departments = [
@@ -88,6 +92,16 @@ const NewBooking = () => {
       setForm((prev) => ({ ...prev, date: today }));
     }
   }, []);
+
+  useEffect(() => {
+  if (message) {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
+}, [message]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -191,6 +205,7 @@ const NewBooking = () => {
       const payload = {
         facultyName: form.facultyName.trim(),
         facultyDepartment: form.facultyDepartment.trim(),
+        facultyDesignation: form.facultyDesignation.trim(),
         facultyEmail: form.facultyEmail.trim(),
         eventTitle: form.eventTitle.trim(),
         eventDescription: form.eventDescription.trim(),
@@ -210,6 +225,7 @@ const NewBooking = () => {
         setForm({
           facultyName: "",
           facultyDepartment: "",
+          facultyDesignation: "", 
           facultyEmail: "",
           eventTitle: "",
           eventDescription: "",
@@ -313,6 +329,7 @@ const NewBooking = () => {
                           required
                         />
                       </div>
+                      
                       {errors.facultyName && (
                         <p className="text-xs text-red-600 flex items-center gap-1">
                           <AlertCircle className="w-3 h-3" />
@@ -321,56 +338,81 @@ const NewBooking = () => {
                       )}
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-foreground-90">
-                        Department
-                      </label>
-                      <Select
-                        value={form.facultyDepartment}
-                        onValueChange={(value) =>
-                          handleSelectChange("facultyDepartment", value)
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select department" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {departments.map((dept) => (
-                            <SelectItem key={dept} value={dept}>
-                              {dept}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                   
 
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-foreground-90">
-                      <span className="flex items-center gap-1">
-                        <Mail className="w-4 h-4" />
-                        Faculty Email
-                      </span>
+                 
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-foreground-90">
+        Faculty Designation
+      </label>
+      <div className="relative">
+        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          name="facultyDesignation"
+          value={form.facultyDesignation}
+          onChange={handleChange}
+          placeholder="Prof / Assistant Prof"
+          className={`pl-10 ${errors.facultyDesignation ? "border-red-500" : ""}`}
+        />
+      </div>
+      {errors.facultyDesignation && (
+        <p className="text-xs text-red-600 flex items-center gap-1">
+          <AlertCircle className="w-3 h-3" />
+          {errors.facultyDesignation}
+        </p>
+      )}
+    </div>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Faculty Email */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-foreground-90">
+          Faculty Email
+           </label>
+           <div className="relative">
+            <div className="relative max-w-64"> 
+              <Input 
+              type="email"
+              name="facultyEmail"
+              value={form.facultyEmail}
+              onChange={handleChange}
+              placeholder="faculty@university.edu"
+              className={`pl-3 ${errors.facultyEmail ? "border-red-500" : ""}`} />
+             </div>
+              
+            </div>
+              {errors.facultyEmail && (
+                <p className="text-xs text-red-600 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {errors.facultyEmail}
+                  </p>
+                )}
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-foreground-90">
+                    Department
                     </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        type="email"
-                        name="facultyEmail"
-                        value={form.facultyEmail}
-                        onChange={handleChange}
-                        placeholder="faculty@university.edu"
-                        className={`pl-10 ${errors.facultyEmail ? "border-red-500" : ""}`}
-                      />
-                    </div>
-                    {errors.facultyEmail && (
-                      <p className="text-xs text-red-600 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.facultyEmail}
-                      </p>
-                    )}
+                    <Select
+                    value={form.facultyDepartment}
+                    onValueChange={(value) => handleSelectChange("facultyDepartment", value)
+
+                    } >
+                      
+                    <SelectTrigger className="w-64">
+                      <SelectValue placeholder="Select department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departments.map((dept) => (
+                        <SelectItem key={dept} value={dept}>
+                          {dept}
+                          </SelectItem>
+                        ))}
+                        </SelectContent>
+                        </Select>
                   </div>
                 </div>
+              </div>
+<br></br>
 
                 {/* Event Information Section */}
                 <div className="space-y-4">
