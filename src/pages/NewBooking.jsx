@@ -28,7 +28,8 @@ import {
   MapPin,
   FileText,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Users
 } from "lucide-react";
 
 const NewBooking = () => {
@@ -41,6 +42,7 @@ const NewBooking = () => {
     eventTitle: "",
     eventDescription: "",
     hall: "",
+    capacity: "",
     date: "",
     startTime: "",
     endTime: ""
@@ -50,8 +52,6 @@ const NewBooking = () => {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
 
-const startTimeRef = useRef(null);
-const endTimeRef = useRef(null);
 
   // Common departments
   const departments = [
@@ -185,6 +185,16 @@ const endTimeRef = useRef(null);
       newErrors.facultyEmail = "Please enter a valid email address";
     }
 
+    if (!form.capacity.trim()) {
+    newErrors.capacity = "Expected number of attendees is required";
+  } else if (!/^\d+$/.test(form.capacity.trim())) {
+    newErrors.capacity = "Please enter a valid number";
+  } else if (parseInt(form.capacity) <= 0) {
+    newErrors.capacity = "Capacity must be greater than 0";
+  } else if (parseInt(form.capacity) > 300) {
+    newErrors.capacity = "Capacity cannot exceed 300";
+  }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -210,6 +220,7 @@ const endTimeRef = useRef(null);
         eventTitle: form.eventTitle.trim(),
         eventDescription: form.eventDescription.trim(),
         hall: form.hall.trim(),
+        capacity: form.capacity.trim(),
         date: form.date,
         startTime: form.startTime,
         endTime: form.endTime
@@ -230,6 +241,7 @@ const endTimeRef = useRef(null);
           eventTitle: "",
           eventDescription: "",
           hall: "",
+          capacity: "",
           date: new Date().toISOString().split("T")[0],
           startTime: "",
           endTime: ""
@@ -338,81 +350,79 @@ const endTimeRef = useRef(null);
                       )}
                     </div>
 
-                   
-
-                 
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-foreground-90">
-        Faculty Designation
-      </label>
-      <div className="relative">
-        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          name="facultyDesignation"
-          value={form.facultyDesignation}
-          onChange={handleChange}
-          placeholder="Prof / Assistant Prof"
-          className={`pl-10 ${errors.facultyDesignation ? "border-red-500" : ""}`}
-        />
-      </div>
-      {errors.facultyDesignation && (
-        <p className="text-xs text-red-600 flex items-center gap-1">
-          <AlertCircle className="w-3 h-3" />
-          {errors.facultyDesignation}
-        </p>
-      )}
-    </div>
-    </div>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {/* Faculty Email */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-foreground-90">
-          Faculty Email
-           </label>
-           <div className="relative">
-            <div className="relative max-w-64"> 
-              <Input 
-              type="email"
-              name="facultyEmail"
-              value={form.facultyEmail}
-              onChange={handleChange}
-              placeholder="faculty@university.edu"
-              className={`pl-3 ${errors.facultyEmail ? "border-red-500" : ""}`} />
-             </div>
-              
-            </div>
-              {errors.facultyEmail && (
-                <p className="text-xs text-red-600 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.facultyEmail}
-                  </p>
-                )}
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-foreground-90">
-                    Department
-                    </label>
-                    <Select
-                    value={form.facultyDepartment}
-                    onValueChange={(value) => handleSelectChange("facultyDepartment", value)
-
-                    } >
-                      
-                    <SelectTrigger className="w-64">
-                      <SelectValue placeholder="Select department" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {departments.map((dept) => (
-                        <SelectItem key={dept} value={dept}>
-                          {dept}
-                          </SelectItem>
-                        ))}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-foreground-90">
+                        Faculty Designation
+                      </label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          name="facultyDesignation"
+                          value={form.facultyDesignation}
+                          onChange={handleChange}
+                          placeholder="Prof / Assistant Prof"
+                          className={`pl-10 ${errors.facultyDesignation ? "border-red-500" : ""}`}
+                        />
+                      </div>
+                      {errors.facultyDesignation && (
+                        <p className="text-xs text-red-600 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.facultyDesignation}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Faculty Email */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-foreground-90">
+                        Faculty Email
+                      </label>
+                      <div className="relative">
+                        <div className="relative max-w-64"> 
+                          <Input 
+                            type="email"
+                            name="facultyEmail"
+                            value={form.facultyEmail}
+                            onChange={handleChange}
+                            placeholder="faculty@university.edu"
+                            className={`pl-3 ${errors.facultyEmail ? "border-red-500" : ""}`} 
+                          />
+                        </div>
+                      </div>
+                      {errors.facultyEmail && (
+                        <p className="text-xs text-red-600 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.facultyEmail}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-foreground-90">
+                        Department
+                      </label>
+                      <Select
+                        value={form.facultyDepartment}
+                        onValueChange={(value) => handleSelectChange("facultyDepartment", value)}
+                      >
+                        <SelectTrigger className="w-64">
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {departments.map((dept) => (
+                            <SelectItem key={dept} value={dept}>
+                              {dept}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
-                        </Select>
+                      </Select>
+                    </div>
                   </div>
                 </div>
-              </div>
-<br></br>
+
+                <br></br>
 
                 {/* Event Information Section */}
                 <div className="space-y-4">
@@ -421,7 +431,9 @@ const endTimeRef = useRef(null);
                     Event Information
                   </h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Event Title, Hall, and Capacity in same line */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Event Title box */}
                     <div className="space-y-2">
                       <label className="block text-sm font-medium text-foreground-90">
                         <span className="flex items-center gap-1">
@@ -444,6 +456,7 @@ const endTimeRef = useRef(null);
                       )}
                     </div>
 
+                    {/* Hall/Room box */}
                     <div className="space-y-2">
                       <label className="block text-sm font-medium text-foreground-90">
                         <span className="flex items-center gap-1">
@@ -480,21 +493,10 @@ const endTimeRef = useRef(null);
                           name="hall"
                           value={form.hall}
                           onChange={handleChange}
-                          placeholder="Enter hall name (e.g., A-205, Seminar Hall)"
+                          placeholder="Enter hall name"
                           className={errors.hall ? "border-red-500" : ""}
                           required
                         />
-                      )}
-                      {form.hall && form.hall !== "Other" && commonHalls.includes(form.hall) && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="w-full text-xs text-muted-foreground"
-                          onClick={() => setForm((prev) => ({ ...prev, hall: "" }))}
-                        >
-                          Or type custom hall name
-                        </Button>
                       )}
                       {errors.hall && (
                         <p className="text-xs text-red-600 flex items-center gap-1">
@@ -502,6 +504,34 @@ const endTimeRef = useRef(null);
                           {errors.hall}
                         </p>
                       )}
+                    </div>
+
+                    {/* Capacity box */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-foreground-90">
+                        <span className="flex items-center gap-1">
+                          <Users className="w-4 h-4" />
+                          Class Strength <span className="text-red-500">*</span>
+                        </span>
+                      </label>
+                      <Input
+                        name="capacity"
+                        type="number"
+                        min="1"
+                        max="300"
+                        value={form.capacity}
+                        onChange={handleChange}
+                        placeholder="e.g., 50"
+                        className={`${errors.capacity ? "border-red-500" : ""} w-40`}
+                        required
+                      />
+                      {errors.capacity && (
+                        <p className="text-xs text-red-600 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.capacity}
+                        </p>
+                      )}
+                     
                     </div>
                   </div>
 
@@ -522,7 +552,7 @@ const endTimeRef = useRef(null);
                       rows={4}
                       maxLength={500}
                       className={`w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amrita resize-none ${
-                        errors.eventDescription ? "border-red-500" : ""
+                        errors.eventDescription ? "outline outline-2 outline-red-500" : ""
                       }`}
                       placeholder="Provide details about the event, expected attendees, special requirements, etc."
                     />
@@ -632,7 +662,9 @@ const endTimeRef = useRef(null);
                     </div>
                   )}
                 </div>
-<br></br>
+
+                <br></br>
+
                 {/* Submit Button */}
                 <div className="flex gap-4 pt-4 border-t">
                   <Button
