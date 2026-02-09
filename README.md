@@ -107,7 +107,7 @@ Frontend/
 3. **Configure Environment Variables:**
    Create a `.env` file in the root directory and add your API base URL:
    ```env
-   VITE_API_BASE_URL=http://localhost:5000/api
+   VITE_API_BASE_URL=http://localhost:5173/api
    ```
 
 4. **Start the development server:**
@@ -130,14 +130,15 @@ Frontend/
 | Role | Permissions |
 | :--- | :--- |
 | **Admin** | Full access to User Management, All Bookings, and Approvals. |
-| **Coordinator** | Can check availability, create new bookings, and manage their own bookings. |
+| **Student Coordinator** | Can check availability, create new bookings, and manage their own bookings. |
 
 ---
 
-## 🤝 Contributing
-Contributions are welcome! Please feel free to submit a Pull Request or open an Issue for any bugs or feature requests.
+## 👤 Author
 
----
+-Aravind R K
+-Kanishka D
+-Sandheep G S
+-Radha Krishna
+-Sujith
 
-## 📄 License
-This project is licensed under the MIT License.
