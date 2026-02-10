@@ -51,6 +51,9 @@ const NewBooking = () => {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
+  const [showConflictModal, setShowConflictModal] = useState(false);
+  const [conflictReason, setConflictReason] = useState("");
+  const [conflictSubmitting, setConflictSubmitting] = useState(false);
 
 
   // Common departments
@@ -211,22 +214,22 @@ const NewBooking = () => {
 
     setSubmitting(true);
 
-    try {
-      const payload = {
-        facultyName: form.facultyName.trim(),
-        facultyDepartment: form.facultyDepartment.trim(),
-        facultyDesignation: form.facultyDesignation.trim(),
-        facultyEmail: form.facultyEmail.trim(),
-        eventTitle: form.eventTitle.trim(),
-        eventDescription: form.eventDescription.trim(),
-        hall: form.hall.trim(),
-        capacity: parseInt(form.capacity.trim()), 
-        date: form.date,
-        startTime: form.startTime,
-        endTime: form.endTime
-      };
+    const basePayload = {
+      facultyName: form.facultyName.trim(),
+      facultyDepartment: form.facultyDepartment.trim(),
+      facultyDesignation: form.facultyDesignation.trim(),
+      facultyEmail: form.facultyEmail.trim(),
+      eventTitle: form.eventTitle.trim(),
+      eventDescription: form.eventDescription.trim(),
+      hall: form.hall.trim(),
+      capacity: parseInt(form.capacity.trim()),
+      date: form.date,
+      startTime: form.startTime,
+      endTime: form.endTime
+    };
 
-      const res = await axios.post("/bookings", payload);
+    try {
+      const res = await axios.post("/bookings", basePayload);
 
       setMessage(res.data.message || "Booking request submitted successfully!");
       setMessageType("success");
@@ -236,7 +239,77 @@ const NewBooking = () => {
         setForm({
           facultyName: "",
           facultyDepartment: "",
-          facultyDesignation: "", 
+          facultyDesignation: "",
+          facultyEmail: "",
+          eventTitle: "",
+          eventDescription: "",
+          hall: "",
+          capacity: "",
+          date: new Date().toISOString().split("T")[0],
+          startTime: "",
+          endTime: ""
+        });
+        setMessage("");
+        setMessageType("");
+      }, 3000);
+    } catch (error) {
+      const status = error.response?.status;
+      const data = error.response?.data;
+
+      // Conflict flow: hall already booked for this slot
+      if (status === 409 && data?.conflict) {
+        setShowConflictModal(true);
+        setConflictReason("");
+      } else {
+        const msg =
+          data?.message || "Failed to submit booking. Please try again.";
+        setMessage(msg);
+        setMessageType("error");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleConflictConfirm = async () => {
+    if (!conflictReason.trim()) {
+      // simple front-end validation – focus stays in modal
+      return;
+    }
+
+    setConflictSubmitting(true);
+    setMessage("");
+
+    const overridePayload = {
+      facultyName: form.facultyName.trim(),
+      facultyDepartment: form.facultyDepartment.trim(),
+      facultyDesignation: form.facultyDesignation.trim(),
+      facultyEmail: form.facultyEmail.trim(),
+      eventTitle: form.eventTitle.trim(),
+      eventDescription: form.eventDescription.trim(),
+      hall: form.hall.trim(),
+      capacity: parseInt(form.capacity.trim()),
+      date: form.date,
+      startTime: form.startTime,
+      endTime: form.endTime,
+      overrideRequested: true,
+      conflictReason: conflictReason.trim()
+    };
+
+    try {
+      const res = await axios.post("/bookings", overridePayload);
+      setShowConflictModal(false);
+      setMessage(
+        res.data.message ||
+          "Conflicting booking request sent to admin for approval."
+      );
+      setMessageType("success");
+
+      setTimeout(() => {
+        setForm({
+          facultyName: "",
+          facultyDepartment: "",
+          facultyDesignation: "",
           facultyEmail: "",
           eventTitle: "",
           eventDescription: "",
@@ -252,11 +325,11 @@ const NewBooking = () => {
     } catch (error) {
       const msg =
         error.response?.data?.message ||
-        "Failed to submit booking. Please try again.";
+        "Failed to send conflicting booking request. Please try again.";
       setMessage(msg);
       setMessageType("error");
     } finally {
-      setSubmitting(false);
+      setConflictSubmitting(false);
     }
   };
 
@@ -698,6 +771,56 @@ const NewBooking = () => {
           </Card>
         </div>
       </main>
+
+      {/* Conflict / Override Modal */}
+      {showConflictModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background border rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-3">
+              Hall Already Booked for This Slot
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              The selected hall is already approved for this date and time.
+              If this is an emergency or higher priority event, you may{" "}
+              request to override the existing booking. This request will be
+              sent to the admin for review.
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">
+                Reason for Override (required)
+              </label>
+              <textarea
+                value={conflictReason}
+                onChange={(e) => setConflictReason(e.target.value)}
+                rows={3}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amrita resize-none"
+                placeholder="Explain why this booking needs to override the existing one (e.g., mandatory exam, important event, urgent requirement, etc.)."
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowConflictModal(false);
+                  setConflictReason("");
+                }}
+                disabled={conflictSubmitting}
+              >
+                No, Keep Existing Booking
+              </Button>
+              <Button
+                type="button"
+                className="bg-amrita hover:bg-amrita/95"
+                onClick={handleConflictConfirm}
+                disabled={conflictSubmitting}
+              >
+                {conflictSubmitting ? "Sending..." : "Yes, Request Override"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
