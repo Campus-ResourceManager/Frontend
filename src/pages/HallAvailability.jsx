@@ -12,6 +12,7 @@ import {
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { ArrowLeft, Calendar, Clock, MapPin, CheckCircle2, XCircle } from "lucide-react";
+import { toast } from "sonner"; // Add import
 
 const HallAvailability = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const HallAvailability = () => {
       // Fetch all bookings (approved and pending) to show availability
       const res = await axios.get("/bookings/availability");
       setAllBookings(res.data || []);
-      
+
       // Extract unique halls
       const uniqueHalls = [
         ...new Set(res.data.map((booking) => booking.hall).filter(Boolean))
@@ -71,12 +72,12 @@ const HallAvailability = () => {
     const selectedDateObj = new Date(date);
     selectedDateObj.setHours(0, 0, 0, 0);
     const now = new Date();
-    
+
     return allBookings.filter((booking) => {
       const bookingDate = new Date(booking.startTime);
       bookingDate.setHours(0, 0, 0, 0);
       const bookingEnd = new Date(booking.endTime);
-      
+
       // Only show bookings that match the date, are approved/pending, and haven't completely passed
       return (
         bookingDate.getTime() === selectedDateObj.getTime() &&
@@ -90,29 +91,29 @@ const HallAvailability = () => {
   // Returns: true if available, false if not available, "past" if time slot is in the past
   const isHallAvailable = (hall, date, startTime, endTime) => {
     if (!date || !startTime || !endTime) return true;
-    
+
     const requestedStart = new Date(`${date}T${startTime}`);
     const requestedEnd = new Date(`${date}T${endTime}`);
     const now = new Date();
-    
+
     // Check if both start and end times are before the current time
     if (requestedStart < now && requestedEnd < now) {
       return "past"; // Time slot is completely in the past
     }
-    
+
     const conflictingBookings = allBookings.filter((booking) => {
       if (booking.hall !== hall) return false;
       if (booking.status === "rejected") return false;
-      
+
       const bookingStart = new Date(booking.startTime);
       const bookingEnd = new Date(booking.endTime);
-      
+
       // Check for overlap
       return (
         bookingStart < requestedEnd && bookingEnd > requestedStart
       );
     });
-    
+
     return conflictingBookings.length === 0;
   };
 
@@ -145,94 +146,94 @@ const HallAvailability = () => {
           </p>
         </div>
 
- {/* Quick Availability Check */}
-            <Card className="bg-gradient-to-br from-amrita/5 to-amrita/10">
-              <CardHeader>
-                <CardTitle className="text-amrita">
-                  Quick Availability Check
-                </CardTitle>
-                <CardDescription>
-                  Check if a specific hall is available for your desired time
-                  slot
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Hall
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="e.g., A-205"
-                      id="check-hall"
-                      className="mb-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Date
-                    </label>
-                    <Input
-                      type="date"
-                      id="check-date"
-                      defaultValue={selectedDate}
-                      className="mb-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Start Time
-                    </label>
-                    <Input type="time" id="check-start" className="mb-2 text-gray-900 dark:text-gray-100 bg-background" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      End Time
-                    </label>
-                    <Input type="time" id="check-end" className="mb-2 text-gray-900 dark:text-gray-100 bg-background" />
-                  </div>
-                </div>
-                <Button
-                  className="mt-4 bg-amrita hover:bg-amrita/95"
-                  onClick={() => {
-                    const hall = document.getElementById("check-hall").value;
-                    const date = document.getElementById("check-date").value;
-                    const startTime = document.getElementById("check-start").value;
-                    const endTime = document.getElementById("check-end").value;
+        {/* Quick Availability Check */}
+        <Card className="bg-gradient-to-br from-amrita/5 to-amrita/10">
+          <CardHeader>
+            <CardTitle className="text-amrita">
+              Quick Availability Check
+            </CardTitle>
+            <CardDescription>
+              Check if a specific hall is available for your desired time
+              slot
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Hall
+                </label>
+                <Input
+                  type="text"
+                  placeholder="e.g., A-205"
+                  id="check-hall"
+                  className="mb-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Date
+                </label>
+                <Input
+                  type="date"
+                  id="check-date"
+                  defaultValue={selectedDate}
+                  className="mb-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Start Time
+                </label>
+                <Input type="time" id="check-start" className="mb-2 text-gray-900 dark:text-gray-100 bg-background" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  End Time
+                </label>
+                <Input type="time" id="check-end" className="mb-2 text-gray-900 dark:text-gray-100 bg-background" />
+              </div>
+            </div>
+            <Button
+              className="mt-4 bg-amrita hover:bg-amrita/95"
+              onClick={() => {
+                const hall = document.getElementById("check-hall").value;
+                const date = document.getElementById("check-date").value;
+                const startTime = document.getElementById("check-start").value;
+                const endTime = document.getElementById("check-end").value;
 
-                    if (!hall || !date || !startTime || !endTime) {
-                      alert("Please fill all fields");
-                      return;
-                    }
+                if (!hall || !date || !startTime || !endTime) {
+                  toast.error("Please fill all fields");
+                  return;
+                }
 
-                    const available = isHallAvailable(
-                      hall,
-                      date,
-                      startTime,
-                      endTime
-                    );
+                const available = isHallAvailable(
+                  hall,
+                  date,
+                  startTime,
+                  endTime
+                );
 
-                    if (available === "past") {
-                      alert(
-                        `The requested time slot (${date} from ${startTime} to ${endTime}) has already passed. Please select a future time slot.`
-                      );
-                    } else if (available) {
-                      alert(
-                        `${hall} is available for ${date} from ${startTime} to ${endTime}`
-                      );
-                    } else {
-                      alert(
-                        `${hall} is NOT available for ${date} from ${startTime} to ${endTime}. Please select a different time slot.`
-                      );
-                    }
-                  }}
-                >
-                  Check Availability
-                </Button>
-              </CardContent>
-            </Card>
-            <br></br>
+                if (available === "past") {
+                  toast.error(
+                    `The requested time slot (${date} from ${startTime} to ${endTime}) has already passed. Please select a future time slot.`
+                  );
+                } else if (available) {
+                  toast.success(
+                    `${hall} is available for ${date} from ${startTime} to ${endTime}`
+                  );
+                } else {
+                  toast.error(
+                    `${hall} is NOT available for ${date} from ${startTime} to ${endTime}. Please select a different time slot.`
+                  );
+                }
+              }}
+            >
+              Check Availability
+            </Button>
+          </CardContent>
+        </Card>
+        <br></br>
         {/* Date Selector */}
         <Card className="mb-6">
           <CardHeader>
@@ -316,11 +317,10 @@ const HallAvailability = () => {
                                   {booking.eventTitle}
                                 </div>
                                 <span
-                                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                    booking.status === "approved"
-                                      ? "bg-green-100 text-green-700"
-                                      : "bg-yellow-100 text-yellow-800"
-                                  }`}
+                                  className={`px-2 py-1 rounded-full text-xs font-medium ${booking.status === "approved"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-yellow-100 text-yellow-800"
+                                    }`}
                                 >
                                   {booking.status.toUpperCase()}
                                 </span>
@@ -349,7 +349,7 @@ const HallAvailability = () => {
               })
             )}
 
-           
+
           </div>
         )}
       </main>

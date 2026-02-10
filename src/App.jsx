@@ -11,75 +11,78 @@ import HallAvailability from './pages/HallAvailability';
 import AccessDenied from './pages/AccessDenied';
 import NotFound from './pages/NotFound';
 import UserManagement from './pages/UserManagement';
-import HallBookingApprovals from './pages/HallBookingApprovals'; 
+import HallBookingApprovals from './pages/HallBookingApprovals';
+
+import { Toaster } from "./components/ui/sonner";
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route 
-            path="/admin-dashboard" 
+          <Route
+            path="/admin-dashboard"
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminDashboard />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/admin/user-management" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>  
-                <UserManagement />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/booking-approvals" 
+          <Route
+            path="/admin/user-management"
             element={
               <ProtectedRoute allowedRoles={['admin']}>
-                <HallBookingApprovals /> 
+                <UserManagement />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/coordinator-dashboard" 
+          <Route
+            path="/admin/booking-approvals"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <HallBookingApprovals />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/coordinator-dashboard"
             element={
               <ProtectedRoute allowedRoles={['coordinator']}>
                 <CoordinatorDashboard />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/new-booking" 
+          <Route
+            path="/new-booking"
             element={
               <ProtectedRoute allowedRoles={['coordinator']}>
                 <NewBooking />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/my-bookings" 
+          <Route
+            path="/my-bookings"
             element={
               <ProtectedRoute allowedRoles={['coordinator']}>
                 <MyBookings />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/hall-availability" 
+          <Route
+            path="/hall-availability"
             element={
               <ProtectedRoute allowedRoles={['coordinator']}>
                 <HallAvailability />
               </ProtectedRoute>
-            } 
+            }
           />
           <Route path="/access-denied" element={<AccessDenied />} />
           <Route path="*" element={<NotFound />} />
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
+      <Toaster />
     </AuthProvider>
   );
 }

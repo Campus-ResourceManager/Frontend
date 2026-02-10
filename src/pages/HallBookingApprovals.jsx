@@ -6,18 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { Button } from '../components/ui/button';
 import { ArrowLeft, Calendar, Clock, User, Mail, FileText, UserCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { toast } from "sonner"; // Add import
 
 const HallBookingApprovals = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
 
   const [pendingBookings, setPendingBookings] = useState([]);
   const [processingBookingId, setProcessingBookingId] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(null);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState('');
   const [loading, setLoading] = useState(true);
 
   // Fetch data
@@ -32,8 +31,7 @@ const HallBookingApprovals = () => {
       setPendingBookings(res.data || []);
     } catch (error) {
       console.error('Error fetching pending bookings:', error);
-      setMessage('Failed to fetch pending bookings');
-      setMessageType('error');
+      toast.error('Failed to fetch pending bookings');
     } finally {
       setLoading(false);
     }
@@ -41,45 +39,31 @@ const HallBookingApprovals = () => {
 
   const approveBooking = async (id) => {
     setProcessingBookingId(id);
-    setMessage('');
     try {
       const res = await axios.patch(`/bookings/${id}/approve`);
-      setMessage(res.data.message || 'Booking approved successfully');
-      setMessageType('success');
+      toast.success(res.data.message || 'Booking approved successfully');
       fetchPendingBookings();
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Failed to approve booking';
-      setMessage(errorMsg);
-      setMessageType('error');
+      toast.error(errorMsg);
     } finally {
       setProcessingBookingId(null);
-      setTimeout(() => {
-        setMessage('');
-        setMessageType('');
-      }, 3000);
     }
   };
 
   const rejectBooking = async (id, reason = '') => {
     setProcessingBookingId(id);
-    setMessage('');
     try {
       const res = await axios.patch(`/bookings/${id}/reject`, { reason });
-      setMessage(res.data.message || 'Booking rejected');
-      setMessageType('success');
+      toast.success(res.data.message || 'Booking rejected');
       setShowRejectModal(null);
       setRejectReason('');
       fetchPendingBookings();
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Failed to reject booking';
-      setMessage(errorMsg);
-      setMessageType('error');
+      toast.error(errorMsg);
     } finally {
       setProcessingBookingId(null);
-      setTimeout(() => {
-        setMessage('');
-        setMessageType('');
-      }, 3000);
     }
   };
 
@@ -118,27 +102,15 @@ const HallBookingApprovals = () => {
             className="mb-4 bg-amrita text-white flex items-center gap-1 hover:bg-amrita/95"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back 
+            Back
           </Button>
-          
+
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-foreground-90">Hall Booking Approvals</h1>
             <p className="text-muted-foreground">Review and approve or reject booking requests from student coordinators</p>
           </div>
         </div>
 
-        {/* Message Alert */}
-        {message && (
-          <div
-            className={`mb-6 rounded-md border px-4 py-3 ${
-              messageType === "success"
-                ? "border-green-300 bg-green-50 text-green-800"
-                : "border-red-300 bg-red-50 text-red-800"
-            }`}
-          >
-            {message}
-          </div>
-        )}
 
         {/* Statistics Card */}
         <Card className="mb-8 bg-amrita/5 border-amrita/20">
@@ -152,8 +124,8 @@ const HallBookingApprovals = () => {
                 </div>
               </div>
               <div className="text-sm text-muted-foreground">
-                {pendingBookings.length === 0 
-                  ? "No pending requests" 
+                {pendingBookings.length === 0
+                  ? "No pending requests"
                   : `${pendingBookings.length} request${pendingBookings.length !== 1 ? 's' : ''} awaiting review`}
               </div>
             </div>
@@ -200,7 +172,7 @@ const HallBookingApprovals = () => {
                     </div>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="pt-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {/* Date & Time */}

@@ -30,6 +30,7 @@ import {
   CheckCircle2,
   AlertCircle
 } from "lucide-react";
+import { toast } from "sonner"; // Add import
 
 const NewBooking = () => {
   const navigate = useNavigate();
@@ -46,8 +47,9 @@ const NewBooking = () => {
   });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("");
+
+  // Removed message state
+
 
   // Common departments
   const departments = [
@@ -177,11 +179,10 @@ const NewBooking = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
+    // Removed message reset
 
     if (!validateForm()) {
-      setMessage("Please fix the errors in the form");
-      setMessageType("error");
+      toast.error("Please fix the errors in the form");
       return;
     }
 
@@ -202,8 +203,7 @@ const NewBooking = () => {
 
       const res = await axios.post("/bookings", payload);
 
-      setMessage(res.data.message || "Booking request submitted successfully!");
-      setMessageType("success");
+      toast.success(res.data.message || "Booking request submitted successfully!");
 
       // Reset form after successful submission
       setTimeout(() => {
@@ -218,15 +218,12 @@ const NewBooking = () => {
           startTime: "",
           endTime: ""
         });
-        setMessage("");
-        setMessageType("");
       }, 3000);
     } catch (error) {
       const msg =
         error.response?.data?.message ||
         "Failed to submit booking. Please try again.";
-      setMessage(msg);
-      setMessageType("error");
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -270,22 +267,7 @@ const NewBooking = () => {
             </CardHeader>
 
             <CardContent className="p-6">
-              {message && (
-                <div
-                  className={`mb-6 rounded-lg border px-4 py-3 flex items-start gap-3 ${
-                    messageType === "success"
-                      ? "border-green-300 bg-green-50 text-green-800"
-                      : "border-red-300 bg-red-50 text-red-800"
-                  }`}
-                >
-                  {messageType === "success" ? (
-                    <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                  ) : (
-                    <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                  )}
-                  <p className="font-medium">{message}</p>
-                </div>
-              )}
+
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Faculty Information Section */}
@@ -479,9 +461,8 @@ const NewBooking = () => {
                       onChange={handleChange}
                       rows={4}
                       maxLength={500}
-                      className={`w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amrita resize-none ${
-                        errors.eventDescription ? "border-red-500" : ""
-                      }`}
+                      className={`w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amrita resize-none ${errors.eventDescription ? "border-red-500" : ""
+                        }`}
                       placeholder="Provide details about the event, expected attendees, special requirements, etc."
                     />
                     <div className="flex justify-between items-center">
@@ -590,7 +571,7 @@ const NewBooking = () => {
                     </div>
                   )}
                 </div>
-<br></br>
+                <br></br>
                 {/* Submit Button */}
                 <div className="flex gap-4 pt-4 border-t">
                   <Button

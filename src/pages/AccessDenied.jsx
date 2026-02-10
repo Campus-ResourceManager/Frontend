@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { ShieldX, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'sonner';
 
 const AccessDenied = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const AccessDenied = () => {
 
   const handleLogout = async () => {
     await logout();
+    toast.success("Logged out successfully");
     navigate('/login');
   };
 
