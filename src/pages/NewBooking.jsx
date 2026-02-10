@@ -220,7 +220,7 @@ const NewBooking = () => {
         eventTitle: form.eventTitle.trim(),
         eventDescription: form.eventDescription.trim(),
         hall: form.hall.trim(),
-        capacity: form.capacity.trim(),
+        capacity: parseInt(form.capacity.trim()), 
         date: form.date,
         startTime: form.startTime,
         endTime: form.endTime

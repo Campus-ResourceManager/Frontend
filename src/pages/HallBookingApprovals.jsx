@@ -33,6 +33,7 @@ const HallBookingApprovals = () => {
       console.log('BOOKING DATA RECEIVED:', res.data[0]); // Check first booking
       console.log('Has facultyDesignation?', 'facultyDesignation' in res.data[0]);
       console.log('Has facultyDepartment?', 'facultyDepartment' in res.data[0]);
+      console.log('Capacity value:', res.data[0]?.capacity);
     } catch (error) {
       console.error('Error fetching pending bookings:', error);
       setMessage('Failed to fetch pending bookings');
@@ -233,8 +234,16 @@ const HallBookingApprovals = () => {
                             minute: '2-digit'
                           })}
                         </div>
-                      </div>
-                    </div>
+                        
+    {booking.capacity >= 0 && (
+  <div className="flex items-center gap-2 text-sm text-foreground-90 mt-2">
+    <UserCheck className="w-4 h-4" />
+    Capacity: {booking.capacity} attendees
+  </div>
+)}
+  </div>
+</div>
+                     
                     {/* Faculty Details */}
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm font-medium">
