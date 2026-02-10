@@ -178,7 +178,14 @@ const HallBookingApprovals = () => {
                 <CardHeader className="bg-amrita/5 border-b">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                      <CardTitle className="text-xl">{booking.eventTitle}</CardTitle>
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        {booking.eventTitle}
+                        {booking.isConflict && (
+                          <span className="px-2 py-0.5 text-xs font-semibold rounded-full border border-amber-300 bg-amber-50 text-amber-800 uppercase tracking-wide">
+                            Conflicting Request
+                          </span>
+                        )}
+                      </CardTitle>
                       <CardDescription className="flex items-center gap-2 mt-1">
                         <span className="font-medium">Hall:</span> {booking.hall}
                       </CardDescription>
@@ -290,6 +297,18 @@ const HallBookingApprovals = () => {
                               <p className="text-sm text-muted-foreground break-words">{booking.eventDescription}</p>
                               </div>
                             )}
+                        {booking.isConflict && (
+                          <div className="mt-3 p-3 rounded-md border border-amber-300 bg-amber-50">
+                            <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1">
+                              Conflicting Booking Request
+                            </p>
+                            {booking.conflictReason && (
+                              <p className="text-sm text-amber-900">
+                                Reason: {booking.conflictReason}
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
