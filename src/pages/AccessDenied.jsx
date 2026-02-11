@@ -15,7 +15,7 @@ const AccessDenied = () => {
       } else if (user.role === 'coordinator') {
         navigate('/coordinator-dashboard');
       } else {
-        navigate('/dashboard');
+        navigate('/login');
       }
     } else {
       navigate('/login');

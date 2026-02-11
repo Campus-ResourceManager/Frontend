@@ -11,69 +11,116 @@ import HallAvailability from './pages/HallAvailability';
 import AccessDenied from './pages/AccessDenied';
 import NotFound from './pages/NotFound';
 import UserManagement from './pages/UserManagement';
-import HallBookingApprovals from './pages/HallBookingApprovals'; 
+import HallBookingApprovals from './pages/HallBookingApprovals';
+import AuditLogs from './pages/AuditLogs';
+import FacultyList from './pages/FacultyList';
+import HallList from './pages/HallList';
+import CoordinatorList from './pages/CoordinatorList';
+import AdminManagement from './pages/AdminManagement';
+import { Toaster } from 'sonner';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
+        <Toaster position="bottom-right" duration={2000} />
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route 
-            path="/admin-dashboard" 
+          <Route
+            path="/admin-dashboard"
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute requiredRole="admin">
                 <AdminDashboard />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/admin/user-management" 
+          <Route
+            path="/admin/user-management"
             element={
-              <ProtectedRoute allowedRoles={['admin']}>  
+              <ProtectedRoute requiredRole="admin">
                 <UserManagement />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/admin/booking-approvals" 
+          <Route
+            path="/admin/hall-booking-approvals"
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <HallBookingApprovals /> 
+              <ProtectedRoute requiredRole="admin">
+                <HallBookingApprovals />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/coordinator-dashboard" 
+          <Route
+            path="/admin/audit-logs"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AuditLogs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/faculty-list"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <FacultyList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/coordinator-list"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <CoordinatorList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/hall-list"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <HallList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/admin-management"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/coordinator-dashboard"
             element={
               <ProtectedRoute allowedRoles={['coordinator']}>
                 <CoordinatorDashboard />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/new-booking" 
+          <Route
+            path="/new-booking"
             element={
               <ProtectedRoute allowedRoles={['coordinator']}>
                 <NewBooking />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/my-bookings" 
+          <Route
+            path="/my-bookings"
             element={
               <ProtectedRoute allowedRoles={['coordinator']}>
                 <MyBookings />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/hall-availability" 
+          <Route
+            path="/hall-availability"
             element={
               <ProtectedRoute allowedRoles={['coordinator']}>
                 <HallAvailability />
               </ProtectedRoute>
-            } 
+            }
           />
           <Route path="/access-denied" element={<AccessDenied />} />
           <Route path="*" element={<NotFound />} />

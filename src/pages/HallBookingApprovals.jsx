@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Header from '../components/Header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -10,14 +11,12 @@ import { useAuth } from '../context/AuthContext';
 const HallBookingApprovals = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
 
   const [pendingBookings, setPendingBookings] = useState([]);
   const [processingBookingId, setProcessingBookingId] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(null);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState('');
   const [loading, setLoading] = useState(true);
 
   // Fetch data
@@ -25,65 +24,45 @@ const HallBookingApprovals = () => {
     fetchPendingBookings();
   }, []);
 
-  const fetchPendingBookings = async () => {
-    setLoading(true);
+  const fetchPendingBookings = async (showFullLoading = true) => {
+    if (showFullLoading) setLoading(true);
     try {
       const res = await axios.get('/bookings/pending');
-      setPendingBookings(res.data || []);
-      console.log('BOOKING DATA RECEIVED:', res.data[0]); // Check first booking
-      console.log('Has facultyDesignation?', 'facultyDesignation' in res.data[0]);
-      console.log('Has facultyDepartment?', 'facultyDepartment' in res.data[0]);
-      console.log('Capacity value:', res.data[0]?.capacity);
+      const data = res.data || [];
+      setPendingBookings(data);
     } catch (error) {
       console.error('Error fetching pending bookings:', error);
-      setMessage('Failed to fetch pending bookings');
-      setMessageType('error');
+      toast.error('Failed to fetch pending bookings');
     } finally {
-      setLoading(false);
+      if (showFullLoading) setLoading(false);
     }
   };
 
   const approveBooking = async (id) => {
     setProcessingBookingId(id);
-    setMessage('');
     try {
       const res = await axios.patch(`/bookings/${id}/approve`);
-      setMessage(res.data.message || 'Booking approved successfully');
-      setMessageType('success');
-      fetchPendingBookings();
+      toast.success(res.data.message || 'Booking approved successfully');
+      fetchPendingBookings(false);
     } catch (error) {
-      const errorMsg = error.response?.data?.message || 'Failed to approve booking';
-      setMessage(errorMsg);
-      setMessageType('error');
+      toast.error(error.response?.data?.message || 'Failed to approve booking');
     } finally {
       setProcessingBookingId(null);
-      setTimeout(() => {
-        setMessage('');
-        setMessageType('');
-      }, 3000);
     }
   };
 
   const rejectBooking = async (id, reason = '') => {
     setProcessingBookingId(id);
-    setMessage('');
     try {
       const res = await axios.patch(`/bookings/${id}/reject`, { reason });
-      setMessage(res.data.message || 'Booking rejected');
-      setMessageType('success');
+      toast.success(res.data.message || 'Booking rejected');
       setShowRejectModal(null);
       setRejectReason('');
-      fetchPendingBookings();
+      fetchPendingBookings(false);
     } catch (error) {
-      const errorMsg = error.response?.data?.message || 'Failed to reject booking';
-      setMessage(errorMsg);
-      setMessageType('error');
+      toast.error(error.response?.data?.message || 'Failed to reject booking');
     } finally {
       setProcessingBookingId(null);
-      setTimeout(() => {
-        setMessage('');
-        setMessageType('');
-      }, 3000);
     }
   };
 
@@ -122,27 +101,16 @@ const HallBookingApprovals = () => {
             className="mb-4 bg-amrita text-white flex items-center gap-1 hover:bg-amrita/95"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back 
+            Back
           </Button>
-          
+
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-foreground-90">Hall Booking Approvals</h1>
             <p className="text-muted-foreground">Review and approve or reject booking requests from student coordinators</p>
           </div>
         </div>
 
-        {/* Message Alert */}
-        {message && (
-          <div
-            className={`mb-6 rounded-md border px-4 py-3 ${
-              messageType === "success"
-                ? "border-green-300 bg-green-50 text-green-800"
-                : "border-red-300 bg-red-50 text-red-800"
-            }`}
-          >
-            {message}
-          </div>
-        )}
+
 
         {/* Statistics Card */}
         <Card className="mb-8 bg-amrita/5 border-amrita/20">
@@ -156,8 +124,8 @@ const HallBookingApprovals = () => {
                 </div>
               </div>
               <div className="text-sm text-muted-foreground">
-                {pendingBookings.length === 0 
-                  ? "No pending requests" 
+                {pendingBookings.length === 0
+                  ? "No pending requests"
                   : `${pendingBookings.length} request${pendingBookings.length !== 1 ? 's' : ''} awaiting review`}
               </div>
             </div>
@@ -211,7 +179,7 @@ const HallBookingApprovals = () => {
                     </div>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="pt-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {/* Date & Time */}
@@ -241,39 +209,39 @@ const HallBookingApprovals = () => {
                             minute: '2-digit'
                           })}
                         </div>
-                        
-    {booking.capacity >= 0 && (
-  <div className="flex items-center gap-2 text-sm text-foreground-90 mt-2">
-    <UserCheck className="w-4 h-4" />
-    Capacity: {booking.capacity} attendees
-  </div>
-)}
-  </div>
-</div>
-                     
+
+                        {booking.capacity >= 0 && (
+                          <div className="flex items-center gap-2 text-sm text-foreground-90 mt-2">
+                            <UserCheck className="w-4 h-4" />
+                            Capacity: {booking.capacity} attendees
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
                     {/* Faculty Details */}
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm font-medium">
                         <User className="w-4 h-4" />
                         Faculty Information
-                        </div>
-                        <div className="space-y-1">
-                          {booking.facultyName && (<p className="text-sm font-medium">{booking.facultyName}</p>)}
-                          
-                          {booking.facultyDesignation && (<p className="text-sm text-muted-foreground">Designation: {booking.facultyDesignation}</p>)}
-                          
-                          {booking.facultyDepartment && (
-                            <p className="text-sm text-muted-foreground">Department: {booking.facultyDepartment}</p>
-                            )}
-                            
-                          {booking.facultyEmail && (
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                               <Mail className="w-4 h-4" />
-                               {booking.facultyEmail}
-                               </div>
-                              )}
-                              </div>
-                            </div>
+                      </div>
+                      <div className="space-y-1">
+                        {booking.facultyName && (<p className="text-sm font-medium">{booking.facultyName}</p>)}
+
+                        {booking.facultyDesignation && (<p className="text-sm text-muted-foreground">Designation: {booking.facultyDesignation}</p>)}
+
+                        {booking.facultyDepartment && (
+                          <p className="text-sm text-muted-foreground">Department: {booking.facultyDepartment}</p>
+                        )}
+
+                        {booking.facultyEmail && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Mail className="w-4 h-4" />
+                            {booking.facultyEmail}
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
                     {/* Coordinator & Description */}
                     <div className="space-y-2">
@@ -293,10 +261,10 @@ const HallBookingApprovals = () => {
                             <div className="flex items-center gap-1 text-sm font-medium mb-1">
                               <FileText className="w-4 h-4" />
                               Description
-                              </div>
-                              <p className="text-sm text-muted-foreground break-words">{booking.eventDescription}</p>
-                              </div>
-                            )}
+                            </div>
+                            <p className="text-sm text-muted-foreground break-words">{booking.eventDescription}</p>
+                          </div>
+                        )}
                         {booking.isConflict && (
                           <div className="mt-3 p-3 rounded-md border border-amber-300 bg-amber-50">
                             <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1">

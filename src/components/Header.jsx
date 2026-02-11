@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
 import { LogOut } from 'lucide-react';
@@ -18,6 +19,7 @@ const Header = () => {
 
   const handleLogout = () => {
     logout();
+    toast.success('Logged out successfully');
     navigate('/login');
   };
 
@@ -27,12 +29,12 @@ const Header = () => {
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold tracking-wide">AMRITA PORTAL</h1>
         </div>
-        
+
         <div className="flex items-center gap-6">
           <span className="text-lg">
             Welcome, <span className="font-semibold">{getDisplayName()}!</span>
           </span>
-          <Button 
+          <Button
             onClick={handleLogout}
             variant="outline"
             className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white flex items-center gap-1"

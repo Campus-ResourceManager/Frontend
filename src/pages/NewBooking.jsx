@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import Header from "../components/Header";
 import {
   Card,
@@ -37,7 +38,7 @@ const NewBooking = () => {
   const [form, setForm] = useState({
     facultyName: "",
     facultyDepartment: "",
-    facultyDesignation: "", 
+    facultyDesignation: "",
     facultyEmail: "",
     eventTitle: "",
     eventDescription: "",
@@ -49,8 +50,6 @@ const NewBooking = () => {
   });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("");
   const [showConflictModal, setShowConflictModal] = useState(false);
   const [conflictReason, setConflictReason] = useState("");
   const [conflictSubmitting, setConflictSubmitting] = useState(false);
@@ -96,14 +95,7 @@ const NewBooking = () => {
     }
   }, []);
 
-  useEffect(() => {
-  if (message) {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  }
-}, [message]);
+  // Removed message scroll effect as we use toast now
 
 
   const handleChange = (e) => {
@@ -189,14 +181,14 @@ const NewBooking = () => {
     }
 
     if (!form.capacity.trim()) {
-    newErrors.capacity = "Expected number of attendees is required";
-  } else if (!/^\d+$/.test(form.capacity.trim())) {
-    newErrors.capacity = "Please enter a valid number";
-  } else if (parseInt(form.capacity) <= 0) {
-    newErrors.capacity = "Capacity must be greater than 0";
-  } else if (parseInt(form.capacity) > 300) {
-    newErrors.capacity = "Capacity cannot exceed 300";
-  }
+      newErrors.capacity = "Expected number of attendees is required";
+    } else if (!/^\d+$/.test(form.capacity.trim())) {
+      newErrors.capacity = "Please enter a valid number";
+    } else if (parseInt(form.capacity) <= 0) {
+      newErrors.capacity = "Capacity must be greater than 0";
+    } else if (parseInt(form.capacity) > 300) {
+      newErrors.capacity = "Capacity cannot exceed 300";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -204,11 +196,9 @@ const NewBooking = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
 
     if (!validateForm()) {
-      setMessage("Please fix the errors in the form");
-      setMessageType("error");
+      toast.error("Please fix the errors in the form");
       return;
     }
 
@@ -231,27 +221,22 @@ const NewBooking = () => {
     try {
       const res = await axios.post("/bookings", basePayload);
 
-      setMessage(res.data.message || "Booking request submitted successfully!");
-      setMessageType("success");
+      toast.success(res.data.message || "Booking request submitted successfully!");
 
       // Reset form after successful submission
-      setTimeout(() => {
-        setForm({
-          facultyName: "",
-          facultyDepartment: "",
-          facultyDesignation: "",
-          facultyEmail: "",
-          eventTitle: "",
-          eventDescription: "",
-          hall: "",
-          capacity: "",
-          date: new Date().toISOString().split("T")[0],
-          startTime: "",
-          endTime: ""
-        });
-        setMessage("");
-        setMessageType("");
-      }, 3000);
+      setForm({
+        facultyName: "",
+        facultyDepartment: "",
+        facultyDesignation: "",
+        facultyEmail: "",
+        eventTitle: "",
+        eventDescription: "",
+        hall: "",
+        capacity: "",
+        date: new Date().toISOString().split("T")[0],
+        startTime: "",
+        endTime: ""
+      });
     } catch (error) {
       const status = error.response?.status;
       const data = error.response?.data;
@@ -263,8 +248,7 @@ const NewBooking = () => {
       } else {
         const msg =
           data?.message || "Failed to submit booking. Please try again.";
-        setMessage(msg);
-        setMessageType("error");
+        toast.error(msg);
       }
     } finally {
       setSubmitting(false);
@@ -278,7 +262,6 @@ const NewBooking = () => {
     }
 
     setConflictSubmitting(true);
-    setMessage("");
 
     const overridePayload = {
       facultyName: form.facultyName.trim(),
@@ -299,35 +282,29 @@ const NewBooking = () => {
     try {
       const res = await axios.post("/bookings", overridePayload);
       setShowConflictModal(false);
-      setMessage(
+      toast.success(
         res.data.message ||
-          "Conflicting booking request sent to admin for approval."
+        "Conflicting booking request sent to admin for approval."
       );
-      setMessageType("success");
 
-      setTimeout(() => {
-        setForm({
-          facultyName: "",
-          facultyDepartment: "",
-          facultyDesignation: "",
-          facultyEmail: "",
-          eventTitle: "",
-          eventDescription: "",
-          hall: "",
-          capacity: "",
-          date: new Date().toISOString().split("T")[0],
-          startTime: "",
-          endTime: ""
-        });
-        setMessage("");
-        setMessageType("");
-      }, 3000);
+      setForm({
+        facultyName: "",
+        facultyDepartment: "",
+        facultyDesignation: "",
+        facultyEmail: "",
+        eventTitle: "",
+        eventDescription: "",
+        hall: "",
+        capacity: "",
+        date: new Date().toISOString().split("T")[0],
+        startTime: "",
+        endTime: ""
+      });
     } catch (error) {
       const msg =
         error.response?.data?.message ||
         "Failed to send conflicting booking request. Please try again.";
-      setMessage(msg);
-      setMessageType("error");
+      toast.error(msg);
     } finally {
       setConflictSubmitting(false);
     }
@@ -371,22 +348,6 @@ const NewBooking = () => {
             </CardHeader>
 
             <CardContent className="p-6">
-              {message && (
-                <div
-                  className={`mb-6 rounded-lg border px-4 py-3 flex items-start gap-3 ${
-                    messageType === "success"
-                      ? "border-green-300 bg-green-50 text-green-800"
-                      : "border-red-300 bg-red-50 text-red-800"
-                  }`}
-                >
-                  {messageType === "success" ? (
-                    <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                  ) : (
-                    <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                  )}
-                  <p className="font-medium">{message}</p>
-                </div>
-              )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Faculty Information Section */}
@@ -414,7 +375,7 @@ const NewBooking = () => {
                           required
                         />
                       </div>
-                      
+
                       {errors.facultyName && (
                         <p className="text-xs text-red-600 flex items-center gap-1">
                           <AlertCircle className="w-3 h-3" />
@@ -445,7 +406,7 @@ const NewBooking = () => {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Faculty Email */}
                     <div className="space-y-2">
@@ -453,14 +414,14 @@ const NewBooking = () => {
                         Faculty Email
                       </label>
                       <div className="relative">
-                        <div className="relative max-w-64"> 
-                          <Input 
+                        <div className="relative max-w-64">
+                          <Input
                             type="email"
                             name="facultyEmail"
                             value={form.facultyEmail}
                             onChange={handleChange}
                             placeholder="faculty@university.edu"
-                            className={`pl-3 ${errors.facultyEmail ? "border-red-500" : ""}`} 
+                            className={`pl-3 ${errors.facultyEmail ? "border-red-500" : ""}`}
                           />
                         </div>
                       </div>
@@ -471,7 +432,7 @@ const NewBooking = () => {
                         </p>
                       )}
                     </div>
-                    
+
                     <div className="space-y-2">
                       <label className="block text-sm font-medium text-foreground-90">
                         Department
@@ -604,7 +565,7 @@ const NewBooking = () => {
                           {errors.capacity}
                         </p>
                       )}
-                     
+
                     </div>
                   </div>
 
@@ -624,9 +585,8 @@ const NewBooking = () => {
                       onChange={handleChange}
                       rows={4}
                       maxLength={500}
-                      className={`w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amrita resize-none ${
-                        errors.eventDescription ? "outline outline-2 outline-red-500" : ""
-                      }`}
+                      className={`w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amrita resize-none ${errors.eventDescription ? "outline outline-2 outline-red-500" : ""
+                        }`}
                       placeholder="Provide details about the event, expected attendees, special requirements, etc."
                     />
                     <div className="flex justify-between items-center">

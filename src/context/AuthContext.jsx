@@ -18,7 +18,6 @@ export const AuthProvider = ({ children }) => {
   const checkAuth = async () => {
     try {
       const response = await axios.get('/auth/me');
-      console.log("checkAuth response:", response.data);
 
       if (response.data.success && response.data.user) {
         setUser(response.data.user);

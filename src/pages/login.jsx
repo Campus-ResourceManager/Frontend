@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'sonner';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -10,88 +11,88 @@ import { User, Lock } from 'lucide-react';
 import amritaLogo from '/src/assets/amrita.png';
 
 const Login = () => {
-  const [currentView, setCurrentView] = useState('login'); 
+  const [currentView, setCurrentView] = useState('login');
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationDirection, setAnimationDirection] = useState('');
-  
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('admin'); 
-  
+  const [role, setRole] = useState('admin');
+
   const [registerUsername, setRegisterUsername] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
-  
-  const { login, register, user } = useAuth();
+
+  const { login, register, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-  e.preventDefault();
-  console.log("Login button clicked");
-  
-  setError('');
-  setIsLoading(true);
-  
-  try {
-    console.log("Calling login() function");
-    const result = await login(username, password, role);
-
-    console.log("Login result:", result);
-    
-    if (result.success) {
-  // user is set by AuthContext (via /auth/me)
-  console.log("Login SUCCESS! Context User:", user);
-
-  setTimeout(() => {
-    if (user?.role === 'admin') {
-      navigate('/admin-dashboard', { replace: true });
-    } else if (user?.role === 'coordinator') {
-      navigate('/coordinator-dashboard', { replace: true });
+  React.useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'admin') {
+        navigate('/admin-dashboard', { replace: true });
+      } else if (user.role === 'coordinator') {
+        navigate('/coordinator-dashboard', { replace: true });
+      }
     }
-    }, 100);
-  } else {
-    setError(result.message);
-  }
- 
-  } catch (err) {
-    console.error("Login ERROR:", err);
-    setError('An error occurred during login');
-  } finally {
-    setIsLoading(false);
-  }
-};
+  }, [isAuthenticated, user, navigate]);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    console.log("Login button clicked");
+
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const result = await login(username, password, role);
+
+      if (result.success) {
+        toast.success("Login successful!");
+        // Navigation is handled by useEffect
+      } else {
+        toast.error(result.message);
+        setError(result.message);
+      }
+    } catch (err) {
+      toast.error("An error occurred during login");
+      setError('An error occurred during login');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+
     if (!registerUsername || !registerPassword || !confirmPassword) {
       setError('Please fill all fields');
       setIsLoading(false);
       return;
     }
-    
+
     if (registerPassword !== confirmPassword) {
       setError('Passwords do not match');
       setIsLoading(false);
       return;
     }
-    
+
     if (registerPassword.length < 6) {
       setError('Password must be at least 6 characters');
       setIsLoading(false);
       return;
     }
-    
+
     try {
       const result = await register(registerUsername, registerPassword, 'admin');
       if (result.success) {
+        toast.success("Admin request submitted successfully!");
         setShowSuccessPopup(true);
         setTimeout(() => {
           setShowSuccessPopup(false);
@@ -101,9 +102,11 @@ const Login = () => {
           flipToLogin('right-to-left');
         }, 2000);
       } else {
+        toast.error(result.message);
         setError(result.message);
       }
     } catch (err) {
+      toast.error("Failed to register");
       setError('Failed to register');
     } finally {
       setIsLoading(false);
@@ -116,11 +119,11 @@ const Login = () => {
     setSuccessMessage('');
     setIsAnimating(true);
     setAnimationDirection('left-to-right');
-    
+
     setTimeout(() => {
       setCurrentView('register');
     }, 350);
-    
+
     setTimeout(() => {
       setIsAnimating(false);
       setAnimationDirection('');
@@ -133,11 +136,11 @@ const Login = () => {
     setSuccessMessage('');
     setIsAnimating(true);
     setAnimationDirection(direction);
-    
+
     setTimeout(() => {
       setCurrentView('login');
     }, 350);
-    
+
     setTimeout(() => {
       setIsAnimating(false);
       setAnimationDirection('');
@@ -146,18 +149,18 @@ const Login = () => {
 
   const getAnimationStyle = () => {
     if (!isAnimating) return {};
-    
+
     if (animationDirection === 'left-to-right') {
       return {
-        transform: currentView === 'login' 
-          ? 'translateX(0%)' 
+        transform: currentView === 'login'
+          ? 'translateX(0%)'
           : 'translateX(100%)',
         opacity: currentView === 'login' ? 0 : 1
       };
     } else { // right to left
       return {
-        transform: currentView === 'register' 
-          ? 'translateX(0%)' 
+        transform: currentView === 'register'
+          ? 'translateX(0%)'
           : 'translateX(-100%)',
         opacity: currentView === 'register' ? 0 : 1
       };
@@ -182,42 +185,39 @@ const Login = () => {
           </div>
         </div>
       )}
-       {/* outer layer */}
+      {/* outer layer */}
       <div className="w-full max-w-6xl h-[600px] relative">
         <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl">
-          
+
           {/* Red Diagonal Overlay - Grows and Shrinks */}
-          <div className={`absolute inset-0 z-30 pointer-events-none overflow-hidden ${
-            isAnimating ? 'opacity-100' : 'opacity-0'
-          } transition-opacity duration-300`}>
+          <div className={`absolute inset-0 z-30 pointer-events-none overflow-hidden ${isAnimating ? 'opacity-100' : 'opacity-0'
+            } transition-opacity duration-300`}>
             <div
               className="absolute w-full h-full bg-amrita transition-all duration-700 ease-in-out"
               style={{
-                clipPath: animationDirection === 'left-to-right' 
-                  ? (currentView === 'login' 
-                      ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
-                      : 'polygon(100% 0, 100% 0, 100% 100%, 100% 100%)')
+                clipPath: animationDirection === 'left-to-right'
+                  ? (currentView === 'login'
+                    ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
+                    : 'polygon(100% 0, 100% 0, 100% 100%, 100% 100%)')
                   : (currentView === 'register'
-                      ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
-                      : 'polygon(0 0, 0 0, 0 100%, 0 100%)')
+                    ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
+                    : 'polygon(0 0, 0 0, 0 100%, 0 100%)')
               }}
             ></div>
           </div>
 
           {/* Login Form */}
-          <div 
-            className={`absolute inset-0 w-full h-full z-10 transition-all duration-700 ease-in-out ${
-              currentView === 'login' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-            }`}
+          <div
+            className={`absolute inset-0 w-full h-full z-10 transition-all duration-700 ease-in-out ${currentView === 'login' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+              }`}
             style={getAnimationStyle()}
           >
             <div className="w-full h-full flex">
               {/* left side - img */}
               <div className="w-1/2 relative overflow-hidden">
-                <div 
-                  className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ${
-                    isAnimating ? (animationDirection === 'left-to-right' ? 'translate-x-10' : '-translate-x-10') : ''
-                  }`}
+                <div
+                  className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ${isAnimating ? (animationDirection === 'left-to-right' ? 'translate-x-10' : '-translate-x-10') : ''
+                    }`}
                   style={{
                     backgroundImage: `url(${amritaLogo})`,
                     backgroundSize: 'cover',
@@ -226,18 +226,16 @@ const Login = () => {
                 >
                   <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/10"></div>
                 </div>
-                
-                <div className={`absolute -right-20 top-0 bottom-0 w-40 bg-background transform skew-x-12 transition-all duration-700 ${
-                  isAnimating ? 'opacity-0' : 'opacity-100'
-                }`}></div>
+
+                <div className={`absolute -right-20 top-0 bottom-0 w-40 bg-background transform skew-x-12 transition-all duration-700 ${isAnimating ? 'opacity-0' : 'opacity-100'
+                  }`}></div>
               </div>
 
               {/* right side - login form */}
               <div className="w-1/2 bg-background flex items-center justify-center p-8">
                 <Card
-                  className={`w-full max-w-sm border-0 shadow-none transition-all duration-700 ${
-                    isAnimating ? (animationDirection === 'left-to-right' ? 'translate-x-10' : '-translate-x-10') : ''
-                  }`}
+                  className={`w-full max-w-sm border-0 shadow-none transition-all duration-700 ${isAnimating ? (animationDirection === 'left-to-right' ? 'translate-x-10' : '-translate-x-10') : ''
+                    }`}
                 >
                   <CardHeader className="text-center pb-2">
                     <CardTitle className="text-2xl font-bold text-amrita">Welcome Back</CardTitle>
@@ -279,8 +277,8 @@ const Login = () => {
 
                       <div className="space-y-2">
                         <Label htmlFor="role" className="text-foreground-90">Role</Label>
-                        <Select 
-                          value={role} 
+                        <Select
+                          value={role}
                           onValueChange={setRole}
                         >
                           <SelectTrigger className="w-full focus:ring-amrita focus:border-amrita">
@@ -297,8 +295,8 @@ const Login = () => {
                         <p className="text-destructive text-sm text-center">{error}</p>
                       )}
 
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         className="w-full bg-amrita hover:bg-amrita/90 text-white"
                         disabled={isLoading}
                       >
@@ -330,18 +328,16 @@ const Login = () => {
           </div>
 
           {/* Register Form */}
-          <div 
-            className={`absolute inset-0 w-full h-full z-20 transition-all duration-700 ease-in-out ${
-              currentView === 'register' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-            }`}
+          <div
+            className={`absolute inset-0 w-full h-full z-20 transition-all duration-700 ease-in-out ${currentView === 'register' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+              }`}
             style={getAnimationStyle()}
           >
             <div className="w-full h-full flex">
               <div className="w-1/2 bg-background flex items-center justify-center p-8">
                 <Card
-                  className={`w-full max-w-sm border-0 shadow-none transition-all duration-700 ${
-                    isAnimating ? (animationDirection === 'right-to-left' ? 'translate-x-10' : '-translate-x-10') : ''
-                  }`}
+                  className={`w-full max-w-sm border-0 shadow-none transition-all duration-700 ${isAnimating ? (animationDirection === 'right-to-left' ? 'translate-x-10' : '-translate-x-10') : ''
+                    }`}
                 >
                   <CardHeader className="text-center pb-2">
                     <CardTitle className="text-2xl font-bold text-amrita">Create Admin Account</CardTitle>
@@ -401,8 +397,8 @@ const Login = () => {
                         <p className="text-destructive text-sm text-center">{error}</p>
                       )}
 
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         className="w-full bg-amrita hover:bg-amrita/90 text-white"
                         disabled={isLoading}
                       >
@@ -424,10 +420,9 @@ const Login = () => {
 
               {/* Right side - image */}
               <div className="w-1/2 relative overflow-hidden">
-                <div 
-                  className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ${
-                    isAnimating ? (animationDirection === 'right-to-left' ? '-translate-x-10' : 'translate-x-10') : ''
-                  }`}
+                <div
+                  className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ${isAnimating ? (animationDirection === 'right-to-left' ? '-translate-x-10' : 'translate-x-10') : ''
+                    }`}
                   style={{
                     backgroundImage: `url(${amritaLogo})`,
                     backgroundSize: 'cover',
@@ -436,10 +431,9 @@ const Login = () => {
                 >
                   <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/10"></div>
                 </div>
-                
-                <div className={`absolute -left-20 top-0 bottom-0 w-40 bg-background transform skew-x-12 transition-all duration-700 ${
-                  isAnimating ? 'opacity-0' : 'opacity-100'
-                }`}></div>
+
+                <div className={`absolute -left-20 top-0 bottom-0 w-40 bg-background transform skew-x-12 transition-all duration-700 ${isAnimating ? 'opacity-0' : 'opacity-100'
+                  }`}></div>
               </div>
             </div>
           </div>

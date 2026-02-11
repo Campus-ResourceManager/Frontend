@@ -15,46 +15,65 @@ const AdminDashboard = () => {
   const [showRejectModal, setShowRejectModal] = useState(null);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    totalFaculty: 100,
+    totalAdmins: 0,
+    pendingAdmins: 0,
+    pendingBookings: 0,
+    totalHalls: 200,
+    departments: 12
+  });
   const { user } = useAuth();
 
   const navigate = useNavigate();
 
   // ---------------- STATIC DATA ----------------
   const quickLinks = [
-    { 
-      icon: Users, 
-      title: 'User Management', 
+    {
+      icon: Users,
+      title: 'User Management',
       description: 'Manage all users',
       onClick: () => navigate('/admin/user-management')
     },
-    { 
-      icon: CalendarCheck, 
-      title: 'Hall Booking Approvals', 
-      description: 'Review booking requests', 
-      onClick: () => navigate('/admin/booking-approvals') 
+    {
+      icon: CalendarCheck,
+      title: 'Hall Booking Approvals',
+      description: 'Review booking requests',
+      onClick: () => navigate('/admin/hall-booking-approvals')
     },
-    { 
-      icon: BarChart3, 
-      title: 'Reports', 
+    {
+      icon: BarChart3,
+      title: 'Reports',
       description: 'View analytics & reports',
       onClick: () => console.log('Reports clicked')
     },
-    { 
-      icon: Shield, 
-      title: 'Access Control', 
-      description: 'Manage permissions',
-      onClick: () => console.log('Access Control clicked')
+    {
+      icon: Shield,
+      title: 'Audit Logs',
+      description: 'View system history',
+      onClick: () => navigate('/admin/audit-logs')
     },
   ];
 
-  const stats = [
-    { label: 'Total Students', value: '32' },
-    { label: 'Total Faculty', value: '100' },
-    { label: 'Departments', value: '12' },
-    { label: 'Classes/Halls', value: '200' }
+  const statsData = [
+    { label: 'Total Coordinators', value: stats.totalStudents, path: '/admin/coordinator-list' },
+    { label: 'Admin Requests', value: stats.pendingAdmins, path: '/admin/admin-management' },
+    { label: 'Total Faculty', value: stats.totalFaculty, path: '/admin/faculty-list' },
+    { label: 'Pending Bookings', value: stats.pendingBookings, path: '/admin/hall-booking-approvals' },
+    { label: 'Classes/Halls', value: stats.totalHalls, path: '/admin/hall-list' }
   ];
 
   // ---------------- API CALLS ----------------
+
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get('/auth/stats');
+      setStats(res.data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
 
   const fetchPendingBookings = async () => {
     try {
@@ -68,6 +87,7 @@ const AdminDashboard = () => {
   // ---------------- EFFECT ----------------
   useEffect(() => {
     fetchPendingBookings();
+    fetchStats();
   }, []);
 
   return (
@@ -81,10 +101,14 @@ const AdminDashboard = () => {
           <p className="text-muted-foreground">Welcome to the administration portal</p>
         </div>
 
-        {/* STATS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <Card key={index} className="bg-amrita text-white">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+          {statsData.map((stat, index) => (
+            <Card
+              key={index}
+              className="bg-amrita text-white cursor-pointer hover:shadow-lg transition-transform hover:scale-105"
+              onClick={() => navigate(stat.path)}
+            >
               <CardHeader className="pb-2">
                 <CardDescription className="text-white/80">{stat.label}</CardDescription>
                 <CardTitle className="text-3xl">{stat.value}</CardTitle>
@@ -93,12 +117,12 @@ const AdminDashboard = () => {
           ))}
         </div>
 
-        {/* QUICK LINKS */}
+        {/* Quick Links */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {quickLinks.map((link, index) => (
-            <Card 
-              key={index} 
-              className="hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-l-amrita"
+            <Card
+              key={index}
+              className="cursor-pointer hover:shadow-lg transition-shadow hover:border-amrita"
               onClick={link.onClick}
             >
               <CardHeader className="flex flex-row items-center gap-4">

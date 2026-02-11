@@ -1,29 +1,33 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import axios from 'axios';
-import Header from '../components/Header'; 
+import Header from '../components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { ArrowLeft, Users, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
+import { useLocation } from 'react-router-dom';
+
 const UserManagement = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
-  
+
   const [pendingAdmins, setPendingAdmins] = useState([]);
   const [activeAdmins, setActiveAdmins] = useState([]);
   const [coordinators, setCoordinators] = useState([]);
   const [newStudentUsername, setNewStudentUsername] = useState('');
   const [newStudentPassword, setNewStudentPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchAllData();
   }, []);
+
+
 
   const fetchAllData = async () => {
     setLoading(true);
@@ -33,13 +37,12 @@ const UserManagement = () => {
         axios.get('/auth/admin/active'),
         axios.get('/auth/coordinators')
       ]);
-      
+
       setPendingAdmins(pendingRes.data);
       setActiveAdmins(activeRes.data);
       setCoordinators(coordinatorsRes.data);
     } catch (error) {
-      setMessage('Failed to fetch user data');
-      setMessageType('error');
+      toast.error('Failed to fetch user data');
     } finally {
       setLoading(false);
     }
@@ -49,12 +52,9 @@ const UserManagement = () => {
     try {
       await axios.patch(`/auth/admin/${id}/approve`);
       fetchAllData();
-      setMessage('Admin approved successfully');
-      setMessageType('success');
-      setTimeout(() => setMessage(''), 3000);
+      toast.success('Admin approved successfully');
     } catch (error) {
-      setMessage('Failed to approve admin');
-      setMessageType('error');
+      toast.error('Failed to approve admin');
     }
   };
 
@@ -62,19 +62,15 @@ const UserManagement = () => {
     try {
       await axios.delete(`/auth/admin/${id}/remove`);
       fetchAllData();
-      setMessage('Admin removed successfully');
-      setMessageType('success');
-      setTimeout(() => setMessage(''), 3000);
+      toast.success('Admin removed successfully');
     } catch (error) {
-      setMessage('Failed to remove admin');
-      setMessageType('error');
+      toast.error('Failed to remove admin');
     }
   };
 
   const addCoordinator = async () => {
     if (!newStudentUsername || !newStudentPassword) {
-      setMessage('Please enter both username and password');
-      setMessageType('error');
+      toast.error('Please enter both username and password');
       return;
     }
 
@@ -88,12 +84,9 @@ const UserManagement = () => {
       setNewStudentUsername('');
       setNewStudentPassword('');
       fetchAllData();
-      setMessage('Coordinator added successfully');
-      setMessageType('success');
-      setTimeout(() => setMessage(''), 3000);
+      toast.success('Coordinator added successfully');
     } catch (error) {
-      setMessage(error.response?.data?.message || 'Failed to add coordinator');
-      setMessageType('error');
+      toast.error(error.response?.data?.message || 'Failed to add coordinator');
     }
   };
 
@@ -101,12 +94,9 @@ const UserManagement = () => {
     try {
       await axios.delete(`/auth/coordinator/${id}`);
       fetchAllData();
-      setMessage('Coordinator deleted successfully');
-      setMessageType('success');
-      setTimeout(() => setMessage(''), 3000);
+      toast.success('Coordinator deleted successfully');
     } catch (error) {
-      setMessage('Failed to delete coordinator');
-      setMessageType('error');
+      toast.error('Failed to delete coordinator');
     }
   };
 
@@ -135,25 +125,14 @@ const UserManagement = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
-          
+
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-foreground-90">User Management</h1>
             <p className="text-muted-foreground">Manage administrators and coordinators</p>
           </div>
         </div>
 
-        {/* Message Alert */}
-        {message && (
-          <div
-            className={`mb-6 rounded-md border px-4 py-3 ${
-              messageType === "success"
-                ? "border-green-300 bg-green-50 text-green-800"
-                : "border-red-300 bg-red-50 text-red-800"
-            }`}
-          >
-            {message}
-          </div>
-        )}
+
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Admin Management */}
@@ -237,7 +216,7 @@ const UserManagement = () => {
           </div>
 
           {/* Right Column - Coordinator Management */}
-          <div>
+          <div id="coordinators-section">
             <Card>
               <CardHeader className="bg-amrita/5 border-b">
                 <CardTitle className="flex items-center gap-2">
@@ -268,8 +247,8 @@ const UserManagement = () => {
                         className="w-full"
                       />
                     </div>
-                    <Button 
-                      onClick={addCoordinator} 
+                    <Button
+                      onClick={addCoordinator}
                       className="w-full bg-amrita hover:bg-amrita/90"
                     >
                       Add Coordinator
