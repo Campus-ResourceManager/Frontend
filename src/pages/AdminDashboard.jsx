@@ -102,19 +102,36 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-          {statsData.map((stat, index) => (
-            <Card
-              key={index}
-              className="bg-amrita text-white cursor-pointer hover:shadow-lg transition-transform hover:scale-105"
-              onClick={() => navigate(stat.path)}
-            >
-              <CardHeader className="pb-2">
-                <CardDescription className="text-white/80">{stat.label}</CardDescription>
-                <CardTitle className="text-3xl">{stat.value}</CardTitle>
-              </CardHeader>
-            </Card>
-          ))}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {/* Live Stats */}
+          <Card className="bg-amrita text-white cursor-default hover:shadow-lg transition-transform hover:scale-105">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-white/80">Total Coordinators</CardDescription>
+              <CardTitle className="text-3xl">{stats.totalStudents}</CardTitle>
+            </CardHeader>
+          </Card>
+
+          <Card className="bg-amrita text-white cursor-default hover:shadow-lg transition-transform hover:scale-105">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-white/80">Total Admins</CardDescription>
+              <CardTitle className="text-3xl">{stats.totalAdmins}</CardTitle>
+            </CardHeader>
+          </Card>
+
+          <Card className="bg-amrita text-white cursor-default hover:shadow-lg transition-transform hover:scale-105">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-white/80">Pending Bookings</CardDescription>
+              <CardTitle className="text-3xl">{stats.pendingBookings}</CardTitle>
+            </CardHeader>
+          </Card>
+
+          <Card className="bg-amrita text-white cursor-default hover:shadow-lg transition-transform hover:scale-105">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-white/80">Classes/Halls</CardDescription>
+              <CardTitle className="text-3xl">{stats.totalHalls}</CardTitle>
+            </CardHeader>
+          </Card>
         </div>
 
         {/* Quick Links */}

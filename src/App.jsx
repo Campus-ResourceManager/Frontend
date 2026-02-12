@@ -22,7 +22,7 @@ import { Toaster } from 'sonner';
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Toaster position="bottom-right" duration={2000} />
         <Routes>
           <Route path="/login" element={<Login />} />

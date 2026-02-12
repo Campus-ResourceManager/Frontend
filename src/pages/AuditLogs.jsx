@@ -13,6 +13,7 @@ const AuditLogs = () => {
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
         username: '',
+        role: 'ALL', // Added role filter
         action: 'ALL',
         startDate: '',
         endDate: ''
@@ -28,9 +29,31 @@ const AuditLogs = () => {
             if (filters.action && filters.action !== 'ALL') params.action = filters.action;
             if (filters.startDate) params.startDate = filters.startDate;
             if (filters.endDate) params.endDate = filters.endDate;
+            // Note: Backend currently doesn't filter by role explicitly in query, 
+            // but we are filtering the *Actions* available which indirectly filters by role context.
+            // If strict role filtering is needed for the *list*, backend update is required.
+            // For now, we follow the instruction: "Change the Action type according to the username" (Role).
 
             const res = await axios.get('/audit-logs', { params });
-            setLogs(res.data);
+            // Client-side filtering for role if needed, or just rely on Action filter.
+            // To strictly follow "if i select admin username it should only show admin action types",
+            // we will let the user select the Action from the filtered list.
+            // Optionally we can filter the displayed logs by the selected role's usual actions if 'action' is ALL.
+
+            let data = res.data;
+            if (filters.role === 'admin') {
+                const adminActions = ['LOGIN', 'LOGOUT', 'ADMIN_REQUEST', 'ADMIN_APPROVE', 'ADMIN_REJECT', 'ADMIN_REMOVE', 'COORDINATOR_DELETE', 'BOOKING_APPROVE', 'BOOKING_REJECT', 'BOOKING_OVERRIDE', 'USER_REGISTER'];
+                if (filters.action === 'ALL') {
+                    data = data.filter(log => adminActions.includes(log.action));
+                }
+            } else if (filters.role === 'coordinator') {
+                const coordinatorActions = ['LOGIN', 'LOGOUT', 'BOOKING_CREATE'];
+                if (filters.action === 'ALL') {
+                    data = data.filter(log => coordinatorActions.includes(log.action));
+                }
+            }
+
+            setLogs(data);
         } catch (error) {
             console.error('Error fetching logs:', error);
         } finally {
@@ -54,32 +77,12 @@ const AuditLogs = () => {
     const clearFilters = () => {
         setFilters({
             username: '',
+            role: 'ALL',
             action: 'ALL',
             startDate: '',
             endDate: ''
         });
-        // We trigger fetch in next render cycle or manually call it after state update (which is tricky with closure),
-        // better to just depend on a "trigger" or call fetchLogs with empty params.
-        // Actually, let's just reset state and the user can click search, 
-        // or we use a separate useEffect for `activeFilters`? 
-        // Simple approach: set state and call fetch with cleared values.
-        const emptyFilters = {
-            username: '',
-            action: 'ALL',
-            startDate: '',
-            endDate: ''
-        };
-        // We need to pass these explicitly because setFilters is async-ish
-        // Recalling fetchLogs won't see the new state immediately.
-        // So we will just duplicate logic or refactor fetchLogs to accept args.
-        // Refactoring fetchLogs to use current state is fine if we wait for user to click Search.
-        // But for "Clear", we want immediate action.
-
-        // Let's just reload page or set state. 
-        // Simplest: set state, then fetch with explicit empty object.
-        setFilters(emptyFilters);
-
-        // Manual fetch logic for clear
+        // Reload logs with empty filters
         (async () => {
             setLoading(true);
             try {
@@ -92,9 +95,58 @@ const AuditLogs = () => {
 
     const getActionColor = (action) => {
         if (action.includes('APPROVE') || action.includes('SUCCESS') || action.includes('LOGIN')) return 'text-green-600';
-        if (action.includes('REJECT') || action.includes('DELETE') || action.includes('LOGOUT')) return 'text-red-600';
-        if (action.includes('CREATE') || action.includes('REGISTER')) return 'text-blue-600';
+        if (action.includes('REJECT') || action.includes('DELETE') || action.includes('LOGOUT') || action.includes('REMOVE')) return 'text-red-600';
+        if (action.includes('CREATE') || action.includes('REGISTER') || action.includes('REQUEST')) return 'text-blue-600';
         return 'text-amrita';
+    };
+
+    // Dynamic Action Options
+    const getActionOptions = () => {
+        if (filters.role === 'admin') {
+            return [
+                { value: 'ALL', label: 'All Admin Actions' },
+                { value: 'LOGIN', label: 'Login' },
+                { value: 'LOGOUT', label: 'Logout' },
+                { value: 'ADMIN_REQUEST', label: 'Admin Request' }, // Admin can also trigger this if they register another admin? Or maybe system.
+                // "admin cannot creating a booking" -> Exclude BOOKING_CREATE
+                // "admin can add coordinator" -> USER_REGISTER (if admin does it, or is it a specific action?)
+                // Checking authController: createLog for registerUser (admin role -> ADMIN_REQUEST, else USER_REGISTER).
+                // Wait, "admin can add coordinator" -> Does admin have a UI to add coordinator? 
+                // Currently CoordinatorList seems to handle it? Or maybe just approving?
+                // For now, let's include the actions we saw in backend.
+                { value: 'ADMIN_APPROVE', label: 'Approve Admin' },
+                { value: 'ADMIN_REJECT', label: 'Reject Admin' },
+                { value: 'ADMIN_REMOVE', label: 'Remove Admin' },
+                { value: 'COORDINATOR_DELETE', label: 'Delete Coordinator' },
+                { value: 'BOOKING_APPROVE', label: 'Approve Booking' },
+                { value: 'BOOKING_REJECT', label: 'Reject Booking' },
+                { value: 'BOOKING_OVERRIDE', label: 'Override Booking' },
+                { value: 'USER_REGISTER', label: 'Register User' }
+            ];
+        } else if (filters.role === 'coordinator') {
+            return [
+                { value: 'ALL', label: 'All Coordinator Actions' },
+                { value: 'LOGIN', label: 'Login' },
+                { value: 'LOGOUT', label: 'Logout' },
+                { value: 'BOOKING_CREATE', label: 'Create Booking' }
+            ];
+        } else {
+            return [
+                { value: 'ALL', label: 'All Actions' },
+                { value: 'LOGIN', label: 'Login' },
+                { value: 'LOGOUT', label: 'Logout' },
+                { value: 'BOOKING_CREATE', label: 'Booking Create' },
+                { value: 'BOOKING_APPROVE', label: 'Booking Approve' },
+                { value: 'BOOKING_REJECT', label: 'Booking Reject' },
+                { value: 'BOOKING_OVERRIDE', label: 'Booking Override' },
+                { value: 'ADMIN_REQUEST', label: 'Admin Request' },
+                { value: 'ADMIN_APPROVE', label: 'Admin Approve' },
+                { value: 'ADMIN_REJECT', label: 'Admin Reject' },
+                { value: 'ADMIN_REMOVE', label: 'Admin Remove' },
+                { value: 'COORDINATOR_DELETE', label: 'Coordinator Delete' },
+                { value: 'USER_REGISTER', label: 'User Register' }
+            ];
+        }
     };
 
     return (
@@ -119,34 +171,46 @@ const AuditLogs = () => {
                 {/* Filters */}
                 <Card className="mb-6">
                     <CardContent className="pt-6">
-                        <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                            <div>
+                        <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+                            <div className="md:col-span-1">
                                 <label className="text-sm font-medium mb-1 block">Username</label>
                                 <Input
-                                    placeholder="Search by username..."
+                                    placeholder="Search user..."
                                     value={filters.username}
                                     onChange={(e) => setFilters({ ...filters, username: e.target.value })}
                                 />
                             </div>
-                            <div>
+                            <div className="md:col-span-1">
+                                <label className="text-sm font-medium mb-1 block">Role</label>
+                                <Select
+                                    value={filters.role}
+                                    onValueChange={(val) => {
+                                        setFilters({ ...filters, role: val, action: 'ALL' }); // Reset action when role changes
+                                    }}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="All Roles" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="ALL">All Roles</SelectItem>
+                                        <SelectItem value="admin">Admin</SelectItem>
+                                        <SelectItem value="coordinator">Coordinator</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="md:col-span-1">
                                 <label className="text-sm font-medium mb-1 block">Action Type</label>
                                 <Select
                                     value={filters.action}
                                     onValueChange={(val) => setFilters({ ...filters, action: val })}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="All Actions" />
+                                        <SelectValue placeholder="Select Action" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="ALL">All Actions</SelectItem>
-                                        <SelectItem value="LOGIN">Login</SelectItem>
-                                        <SelectItem value="LOGOUT">Logout</SelectItem>
-                                        <SelectItem value="BOOKING_CREATE">Booking Create</SelectItem>
-                                        <SelectItem value="BOOKING_APPROVE">Booking Approve</SelectItem>
-                                        <SelectItem value="BOOKING_REJECT">Booking Reject</SelectItem>
-                                        <SelectItem value="ADMIN_APPROVE">Admin Approve</SelectItem>
-                                        <SelectItem value="ADMIN_REJECT">Admin Reject</SelectItem>
-                                        <SelectItem value="USER_REGISTER">User Register</SelectItem>
+                                        {getActionOptions().map(opt => (
+                                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>

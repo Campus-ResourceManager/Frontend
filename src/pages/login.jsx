@@ -92,7 +92,7 @@ const Login = () => {
     try {
       const result = await register(registerUsername, registerPassword, 'admin');
       if (result.success) {
-        toast.success("Admin request submitted successfully!");
+        // toast.success("Admin request submitted successfully!"); // Removed as per request
         setShowSuccessPopup(true);
         setTimeout(() => {
           setShowSuccessPopup(false);
