@@ -25,7 +25,7 @@ const Header = () => {
     <header className="bg-amrita text-amrita-foreground shadow-lg">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold tracking-wide">Campus Resource Management</h1>
+          <h1 className="text-2xl font-bold tracking-wide">IntelliReserve</h1>
         </div>
         
         <div className="flex items-center gap-6">
