@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import {
   Card,
   CardContent,
@@ -33,6 +34,7 @@ import {
 } from "lucide-react";
 
 const NewBooking = () => {
+  const location = useLocation();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     facultyName: "",
@@ -42,6 +44,7 @@ const NewBooking = () => {
     eventTitle: "",
     eventDescription: "",
     hall: "",
+    resourceId: "",
     capacity: "",
     date: "",
     startTime: "",
@@ -54,7 +57,7 @@ const NewBooking = () => {
   const [showConflictModal, setShowConflictModal] = useState(false);
   const [conflictReason, setConflictReason] = useState("");
   const [conflictSubmitting, setConflictSubmitting] = useState(false);
-
+  const [isPrefilledResource, setIsPrefilledResource] = useState(false);
 
   // Common departments
   const departments = [
@@ -95,6 +98,22 @@ const NewBooking = () => {
       setForm((prev) => ({ ...prev, date: today }));
     }
   }, []);
+    useEffect(() => {
+      if (location.state) {
+        const { resourceId, resourceName, date } = location.state;
+
+        if (resourceId) {
+          setForm((prev) => ({
+            ...prev,
+            hall: resourceName || prev.hall,
+            resourceId: resourceId,
+            date: date || prev.date
+          }));
+
+          setIsPrefilledResource(true); 
+        }
+      }
+    }, [location.state]);
 
   useEffect(() => {
   if (message) {
@@ -221,7 +240,7 @@ const NewBooking = () => {
       facultyEmail: form.facultyEmail.trim(),
       eventTitle: form.eventTitle.trim(),
       eventDescription: form.eventDescription.trim(),
-      hall: form.hall.trim(),
+      resourceId: form.resourceId,
       capacity: parseInt(form.capacity.trim()),
       date: form.date,
       startTime: form.startTime,
@@ -244,6 +263,7 @@ const NewBooking = () => {
           eventTitle: "",
           eventDescription: "",
           hall: "",
+          resourceId: "",
           capacity: "",
           date: new Date().toISOString().split("T")[0],
           startTime: "",
@@ -280,22 +300,21 @@ const NewBooking = () => {
     setConflictSubmitting(true);
     setMessage("");
 
-    const overridePayload = {
-      facultyName: form.facultyName.trim(),
-      facultyDepartment: form.facultyDepartment.trim(),
-      facultyDesignation: form.facultyDesignation.trim(),
-      facultyEmail: form.facultyEmail.trim(),
-      eventTitle: form.eventTitle.trim(),
-      eventDescription: form.eventDescription.trim(),
-      hall: form.hall.trim(),
-      capacity: parseInt(form.capacity.trim()),
-      date: form.date,
-      startTime: form.startTime,
-      endTime: form.endTime,
-      overrideRequested: true,
-      conflictReason: conflictReason.trim()
-    };
-
+const overridePayload = {
+  facultyName: form.facultyName.trim(),
+  facultyDepartment: form.facultyDepartment.trim(),
+  facultyDesignation: form.facultyDesignation.trim(),
+  facultyEmail: form.facultyEmail.trim(),
+  eventTitle: form.eventTitle.trim(),
+  eventDescription: form.eventDescription.trim(),
+  resourceId: form.resourceId,   
+  capacity: parseInt(form.capacity.trim()),
+  date: form.date,
+  startTime: form.startTime,
+  endTime: form.endTime,
+  overrideRequested: true,
+  conflictReason: conflictReason.trim()
+};
     try {
       const res = await axios.post("/bookings", overridePayload);
       setShowConflictModal(false);
@@ -314,6 +333,7 @@ const NewBooking = () => {
           eventTitle: "",
           eventDescription: "",
           hall: "",
+          resourceId: "",
           capacity: "",
           date: new Date().toISOString().split("T")[0],
           startTime: "",
@@ -562,14 +582,14 @@ const NewBooking = () => {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Input
-                          name="hall"
-                          value={form.hall}
-                          onChange={handleChange}
-                          placeholder="Enter hall name"
-                          className={errors.hall ? "border-red-500" : ""}
-                          required
-                        />
+                      <Input
+                        name="hall"
+                        value={form.hall}
+                        onChange={handleChange}
+                        placeholder="Enter hall name"
+                        disabled={isPrefilledResource}
+                        className={errors.hall ? "border-red-500" : ""}
+                      />
                       )}
                       {errors.hall && (
                         <p className="text-xs text-red-600 flex items-center gap-1">
